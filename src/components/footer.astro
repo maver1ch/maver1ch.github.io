@@ -1,0 +1,81 @@
+---
+const currentYear = new Date().getFullYear();
+
+const socials = [
+  { href: 'mailto:damhongphuc.4104@gmail.com', label: 'Email' },
+  { href: 'https://www.linkedin.com/in/damhongphuc/', label: 'LinkedIn' },
+  { href: 'https://github.com/maver1ch', label: 'GitHub' },
+  { href: 'https://www.upwork.com/freelancers/~damhongphuc', label: 'Upwork' },
+];
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <p class="brand-name">Dam Hong Phuc</p>
+      <p class="brand-tagline">AI Full-stack Engineer · RAG & Multi-Agent Systems</p>
+    </div>
+    <div class="footer-links">
+      {socials.map(({ href, label }) => (
+        <a href={href} target="_blank" rel="noopener noreferrer">{label}</a>
+      ))}
+    </div>
+  </div>
+  <p class="copyright">© {currentYear} Dam Hong Phuc. Built with Astro.</p>
+</footer>
+
+<style>
+  .site-footer {
+    padding: 4rem 5% 2rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    margin-top: 6rem;
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .brand-name {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+
+  .brand-tagline {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-links a {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: var(--color-accent-primary);
+  }
+
+  .copyright {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    margin-top: 3rem;
+    opacity: 0.7;
+  }
+</style>

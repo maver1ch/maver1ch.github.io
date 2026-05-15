@@ -1,0 +1,266 @@
+---
+import BaseLayout from './base-layout.astro';
+import Badge from '../components/badge.astro';
+import GlassCard from '../components/glass-card.astro';
+import StackPill from '../components/stack-pill.astro';
+
+interface Props {
+  title: string;
+  client: string;
+  period: string;
+  role: string;
+  tldr: string;
+  stack?: string[];
+  description?: string;
+  image?: string;
+}
+
+const {
+  title,
+  client,
+  period,
+  role,
+  tldr,
+  stack = [],
+  description,
+  image,
+} = Astro.props;
+
+const seoTitle = `${title} — Case Study | Dam Hong Phuc`;
+const seoDescription =
+  description ?? `Case study: ${title}. ${tldr.slice(0, 140)}`;
+---
+
+<BaseLayout title={seoTitle} description={seoDescription} image={image}>
+  <article class="case-study">
+    <header class="case-hero">
+      <Badge variant="primary">Case Study</Badge>
+      <h1 class="case-title">{title}</h1>
+      <div class="case-meta">
+        <span><strong>Client:</strong> {client}</span>
+        <span><strong>Period:</strong> {period}</span>
+        <span><strong>Role:</strong> {role}</span>
+      </div>
+    </header>
+
+    <section class="case-tldr-wrap">
+      <GlassCard hover={false}>
+        <h2 class="tldr-heading">TL;DR</h2>
+        <p class="tldr-text">{tldr}</p>
+        {stack.length > 0 && (
+          <div class="stack-row">
+            {stack.map((s) => <StackPill label={s} />)}
+          </div>
+        )}
+      </GlassCard>
+    </section>
+
+    <section class="case-content">
+      <slot />
+    </section>
+  </article>
+
+  <!-- Image lightbox (shared, single instance) -->
+  <div id="image-lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <button class="lightbox-close" aria-label="Close image">×</button>
+    <img class="lightbox-img" alt="" />
+  </div>
+
+  <script>
+    // Click-to-zoom lightbox; re-binds after Astro view transitions
+    const initLightbox = () => {
+      const lightbox = document.getElementById('image-lightbox');
+      const lightboxImg = lightbox?.querySelector<HTMLImageElement>('.lightbox-img');
+      const closeBtn = lightbox?.querySelector('.lightbox-close');
+      if (!lightbox || !lightboxImg) return;
+
+      const closeLightbox = () => {
+        lightbox.classList.remove('is-open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      };
+
+      document.querySelectorAll<HTMLImageElement>('img[data-zoom]').forEach((img) => {
+        // Idempotent — set a dataset flag so listeners don't stack on re-init
+        if (img.dataset.zoomBound === '1') return;
+        img.dataset.zoomBound = '1';
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => {
+          lightboxImg.src = img.src;
+          lightboxImg.alt = img.alt;
+          lightbox.classList.add('is-open');
+          lightbox.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+
+      closeBtn?.addEventListener('click', closeLightbox);
+      lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) closeLightbox();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeLightbox();
+      });
+    };
+
+    initLightbox();
+    document.addEventListener('astro:page-load', initLightbox);
+  </script>
+</BaseLayout>
+
+<style>
+  .case-study {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 8rem 5% 4rem;
+  }
+
+  .case-hero {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .case-title {
+    font-size: clamp(2.25rem, 5vw, 4rem);
+    line-height: 1.1;
+    margin: 1.5rem auto 1.25rem;
+    max-width: 900px;
+    background: linear-gradient(135deg, #0f172a 0%, #0ea5e9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .case-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+  }
+
+  .case-meta strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .case-tldr-wrap {
+    max-width: 900px;
+    margin: 0 auto 4rem;
+  }
+
+  .tldr-heading {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-accent-primary);
+    margin-bottom: 1rem;
+  }
+
+  .tldr-text {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: var(--color-text-primary);
+  }
+
+  .stack-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .case-content {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* MDX content typography */
+  .case-content :global(h2) {
+    font-size: 2rem;
+    margin: 3.5rem 0 1.5rem;
+  }
+
+  .case-content :global(h3) {
+    font-size: 1.4rem;
+    margin: 2.5rem 0 1rem;
+  }
+
+  .case-content :global(p) {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    margin-bottom: 1.25rem;
+  }
+
+  .case-content :global(ul),
+  .case-content :global(ol) {
+    margin: 1rem 0 1.5rem 1.5rem;
+    color: var(--color-text-secondary);
+    line-height: 1.75;
+  }
+
+  .case-content :global(li) {
+    margin-bottom: 0.5rem;
+  }
+
+  .case-content :global(strong) {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  .case-content :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 1rem;
+    margin: 2rem 0;
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  }
+
+  /* Lightbox */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .lightbox.is-open {
+    display: flex;
+  }
+
+  .lightbox-img {
+    max-width: 95vw;
+    max-height: 90vh;
+    border-radius: 0.5rem;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: rotate(90deg);
+  }
+</style>

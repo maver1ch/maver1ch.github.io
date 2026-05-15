@@ -1,0 +1,66 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+}
+
+const { src, alt } = Astro.props;
+---
+
+<figure class="zoomable-figure">
+  <img
+    src={src}
+    alt={alt}
+    class="zoomable-img"
+    data-zoom
+    decoding="async"
+  />
+  <figcaption class="zoom-hint">Click to enlarge</figcaption>
+</figure>
+
+<!-- Lightbox modal (one per page is enough; injected by global script) -->
+
+<style>
+  .zoomable-figure {
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
+    background: rgba(255, 255, 255, 0.6);
+    cursor: zoom-in;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .zoomable-figure:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 44px rgba(15, 23, 42, 0.14);
+  }
+
+  .zoomable-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .zoom-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.6rem 1rem;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.55), transparent);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .zoomable-figure:hover .zoom-hint {
+    opacity: 1;
+  }
+</style>

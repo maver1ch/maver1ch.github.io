@@ -1,0 +1,214 @@
+---
+const logos = [
+  { name: 'FPT Software', tone: '#FF6900', weight: 800, font: 'heading', tracking: '-0.04em',  url: 'https://www.fpt-software.com' },
+  { name: 'Covestro',     tone: '#00A0DC', weight: 700, font: 'sans',    tracking: '-0.02em',  url: 'https://www.covestro.com',     italic: true },
+  { name: 'HTI Group',    tone: '#2563EB', weight: 700, font: 'heading', tracking: '-0.02em',  url: 'https://htigroup.vn/' },
+  { name: 'HG Group',     tone: '#16A34A', weight: 700, font: 'sans',    tracking: '-0.02em',  url: 'https://www.facebook.com/hgmediaofficial' },
+];
+
+const status = [
+  { icon: 'pin',       text: 'Hanoi, Vietnam (UTC+7)' },
+  { icon: 'globe',     text: 'Fluent English (IELTS 7.0)' },
+  { icon: 'briefcase', text: 'Available for select contract work' },
+];
+---
+
+<section class="about" id="about">
+  <div class="about-inner">
+    <!-- NARRATIVE -->
+    <h2 class="section-title">
+      Production-first <span class="grad">AI engineering</span>.
+    </h2>
+
+    <p class="narrative">
+      I bridge the gap between AI research and enterprise production. Over the past
+      <strong>3+ years</strong>, I&rsquo;ve engineered scalable RAG pipelines,
+      autonomous multi-agent systems, and zero-trust LLMOps infrastructures for
+      <strong>multi-billion dollar corporations</strong>. My focus is moving AI
+      out of the notebook and into highly available, compliant AWS microservices.
+    </p>
+
+    <!-- PROOF -->
+    <div class="proof">
+      <p class="proof-kicker">Previously built at &amp; trusted by</p>
+      <ul class="logo-row">
+        {logos.map((l) => (
+          <li>
+            <a
+              class="logo-item"
+              href={l.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={`--logo-color: ${l.tone}; font-weight: ${l.weight}; letter-spacing: ${l.tracking}; ${l.italic ? 'font-style: italic;' : ''}`}
+              data-font={l.font}
+              aria-label={`Visit ${l.name}`}
+            >
+              {l.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      {status.map(({ icon, text }, i) => (
+        <>
+          {i > 0 && <span class="dot" aria-hidden="true">•</span>}
+          <span class="status-item">
+            <span class="status-icon" aria-hidden="true">
+              {icon === 'pin' && (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              )}
+              {icon === 'globe' && (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M2 12h20"/>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+              )}
+              {icon === 'briefcase' && (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+              )}
+            </span>
+            {text}
+          </span>
+        </>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .about {
+    padding: 6rem 5%;
+  }
+  .about-inner {
+    max-width: 64rem; /* max-w-5xl */
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* Eyebrow */
+  .eyebrow {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    margin: 0 0 1.25rem;
+  }
+
+  /* Section heading */
+  .section-title {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+    padding-bottom: 0.05em;
+    margin: 0 0 2rem;
+  }
+  .grad {
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary) 60%, var(--color-accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Narrative paragraph */
+  .narrative {
+    max-width: 48rem;
+    margin: 0 auto;
+    font-size: clamp(1.05rem, 1.3vw, 1.2rem);
+    line-height: 1.75;
+    color: #475569; /* slate-600 */
+  }
+  .narrative strong {
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  /* PROOF: logo row */
+  .proof {
+    margin-top: 5rem;
+  }
+  .proof-kicker {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: #94a3b8; /* slate-400 */
+    margin: 0 0 1.5rem;
+  }
+  .logo-row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2.5rem 3.5rem;
+  }
+  .logo-item {
+    color: var(--logo-color);
+    font-size: 1.35rem;
+    line-height: 1;
+    filter: grayscale(100%);
+    opacity: 0.55;
+    transition: filter 320ms var(--ease-premium), opacity 320ms var(--ease-premium), transform 320ms var(--ease-premium);
+    cursor: default;
+    user-select: none;
+  }
+  .logo-item:hover {
+    filter: grayscale(0%);
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+  .logo-item[data-font="heading"] { font-family: var(--font-heading); }
+  .logo-item[data-font="sans"]    { font-family: var(--font-sans); }
+
+  /* STATUS BAR */
+  .status-bar {
+    margin-top: 4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    color: #64748b; /* slate-500 */
+    font-size: 0.9rem;
+  }
+  .status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .status-icon {
+    display: inline-flex;
+    color: var(--color-accent-primary);
+    opacity: 0.85;
+  }
+  .dot {
+    color: #cbd5e1; /* slate-300 */
+    font-size: 0.85rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .logo-row { gap: 1.75rem 2rem; }
+    .logo-item { font-size: 1.15rem; }
+    .status-bar { gap: 0.5rem; font-size: 0.85rem; }
+    .dot { display: none; }
+    .status-item {
+      flex-basis: 100%;
+      justify-content: center;
+    }
+  }
+</style>

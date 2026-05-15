@@ -1,0 +1,86 @@
+---
+import { caseStudies } from '../../data/case-studies.ts';
+import CaseStudyCard from '../case-study-card.astro';
+---
+
+<section class="featured-work" id="work">
+  <header class="section-header">
+    <h2 class="section-title">
+      Production AI, <span class="grad">shipped</span>.
+    </h2>
+    <p class="section-lede">
+      Multi-agent RAG, contract intelligence, and enterprise platform migrations.
+      Sanitized architecture write-ups from real engagements at FPT Software and HTI Group.
+    </p>
+  </header>
+
+  <div class="case-list">
+    {caseStudies.map((study, idx) => (
+      <CaseStudyCard study={study} index={idx} />
+    ))}
+  </div>
+</section>
+
+<style>
+  .featured-work {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 8rem 5% 6rem;
+    position: relative;
+  }
+
+  .section-header {
+    max-width: 720px;
+    margin: 0 auto 5rem;
+    text-align: center;
+  }
+
+  .section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1.5rem;
+  }
+  .eyebrow-line {
+    width: 32px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
+  }
+  .eyebrow-text {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-accent-primary);
+  }
+
+  .section-title {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.05em;
+    color: var(--color-text-primary);
+  }
+  .grad {
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary) 60%, var(--color-accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section-lede {
+    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  .case-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5rem;
+  }
+</style>

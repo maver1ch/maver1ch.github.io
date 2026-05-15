@@ -1,0 +1,84 @@
+---
+interface Props {
+  decision: string;
+  why?: string;
+  tradeoff?: string;
+}
+
+const { decision, why, tradeoff } = Astro.props;
+---
+
+<div class="decision-block reveal">
+  <div class="decision-marker" aria-hidden="true"></div>
+  <div class="decision-content">
+    <div class="decision-row">
+      <span class="decision-label">Decision</span>
+      <span class="decision-value">{decision}</span>
+    </div>
+    {why && (
+      <div class="decision-row">
+        <span class="decision-label">Why</span>
+        <span class="decision-value">{why}</span>
+      </div>
+    )}
+    {tradeoff && (
+      <div class="decision-row">
+        <span class="decision-label">Tradeoff</span>
+        <span class="decision-value">{tradeoff}</span>
+      </div>
+    )}
+  </div>
+</div>
+
+<style>
+  .decision-block {
+    display: grid;
+    grid-template-columns: 4px 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    margin-bottom: 1.25rem;
+  }
+
+  .decision-marker {
+    background: linear-gradient(to bottom, var(--color-accent-primary), var(--color-accent-secondary));
+    border-radius: 2px;
+  }
+
+  .decision-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .decision-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  .decision-label {
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-accent-primary);
+  }
+
+  .decision-value {
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 640px) {
+    .decision-row {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

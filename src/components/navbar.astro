@@ -1,0 +1,177 @@
+---
+const navLinks = [
+  { href: '/#work', label: 'Work', section: 'work' },
+  { href: '/#about', label: 'About', section: 'about' },
+  { href: '/#skills', label: 'Skills', section: 'skills' },
+  { href: '/#contact', label: 'Contact', section: 'contact' },
+];
+---
+
+<nav class="navbar" aria-label="Primary">
+  <a href="/" class="logo" aria-label="Dam Hong Phuc — Home">
+    <span class="logo-mark">DP</span>
+    <span class="logo-text">Dam Hong Phuc <span class="logo-suffix">| AI Full-stack Engineer</span></span>
+  </a>
+
+  <div class="nav-links">
+    {navLinks.map(({ href, label, section }) => (
+      <a href={href} class="nav-link" data-section={section}>
+        <span>{label}</span>
+      </a>
+    ))}
+    <a href="/resume.pdf" class="nav-cta" target="_blank" rel="noopener noreferrer">
+      Resume
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 17L17 7M17 7H8M17 7V16"/>
+      </svg>
+    </a>
+  </div>
+</nav>
+
+<script>
+  // Active link scroll-spy
+  const sections = ['work', 'about', 'skills', 'contact']
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  if (sections.length > 0) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            document.querySelectorAll<HTMLAnchorElement>('.nav-link').forEach((link) => {
+              link.classList.toggle('is-active', link.dataset.section === id);
+            });
+          }
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px' }
+    );
+    sections.forEach((s) => observer.observe(s));
+  }
+</script>
+
+<style>
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 5%;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(248, 250, 252, 0.68);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+    transition: background var(--duration-base) var(--ease-premium);
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--color-text-primary);
+  }
+
+  .logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.55rem;
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    box-shadow: 0 6px 20px -6px rgba(37, 99, 235, 0.45);
+  }
+
+  .logo-suffix {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .nav-link {
+    position: relative;
+    color: var(--color-text-secondary);
+    font-size: 0.92rem;
+    font-weight: 500;
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-md);
+    transition: color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+  }
+
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-accent-primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform var(--duration-base) var(--ease-spring);
+  }
+
+  .nav-link:hover {
+    color: var(--color-text-primary);
+    background: rgba(15, 23, 42, 0.04);
+  }
+
+  .nav-link.is-active {
+    color: var(--color-accent-primary);
+  }
+  .nav-link.is-active::after {
+    transform: translateX(-50%) scale(1);
+  }
+
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1.05rem;
+    margin-left: 0.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-text-primary);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition:
+      background var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .nav-cta svg { transition: transform var(--duration-fast) var(--ease-spring); }
+
+  .nav-cta:hover {
+    background: var(--color-accent-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -6px rgba(37, 99, 235, 0.5);
+  }
+  .nav-cta:hover svg { transform: translate(2px, -2px); }
+  .nav-cta:active { transform: translateY(0) scale(0.97); }
+
+  @media (max-width: 640px) {
+    .navbar { padding: 0.7rem 5%; }
+    .logo-text { display: none; }
+    .nav-link { display: none; }
+  }
+</style>

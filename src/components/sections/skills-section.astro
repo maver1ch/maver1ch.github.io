@@ -1,0 +1,198 @@
+---
+import { skillGroups } from '../../data/skills.ts';
+import GlassCard from '../glass-card.astro';
+import StackPill from '../stack-pill.astro';
+---
+
+<section class="skills" id="skills">
+  <header class="section-header">
+    <h2 class="section-title">
+      Tech I reach for, in <span class="grad">production</span>.
+    </h2>
+    <p class="section-lede">
+      Categorized by where it sits in the AI engineering stack.
+    </p>
+  </header>
+
+  <div class="skills-grid">
+    {skillGroups.map((group, i) => (
+      <GlassCard hover={false} class="skill-card">
+        <div class="card-header">
+          <span class="card-index">0{i + 1}</span>
+          <h3 class="group-title">{group.category}</h3>
+        </div>
+        <p class="group-desc">{group.description}</p>
+
+        <div class="group-pills">
+          {group.tools.map((item) => <StackPill label={item} />)}
+        </div>
+      </GlassCard>
+    ))}
+  </div>
+</section>
+
+<style>
+  .skills {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6rem 5%;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .section-title {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+    margin-bottom: 1rem;
+    padding-bottom: 0.05em;
+  }
+  .grad {
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary) 60%, var(--color-accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-lede {
+    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  @media (max-width: 760px) {
+    .skills-grid { grid-template-columns: 1fr; }
+  }
+
+  .skill-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition:
+      transform var(--duration-base) var(--ease-premium),
+      box-shadow var(--duration-base) var(--ease-premium);
+  }
+  .skill-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.55), rgba(14, 165, 233, 0.55), rgba(6, 182, 212, 0.5));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-premium);
+    pointer-events: none;
+  }
+  .skill-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+  .skill-card:hover::after { opacity: 1; }
+  .skill-card:hover .card-index {
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary), var(--color-accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    opacity: 1;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.5rem;
+  }
+  .card-index {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-accent-primary);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    transition: color var(--duration-base) var(--ease-premium);
+  }
+  .group-title {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    line-height: 1;
+    margin: 0;
+  }
+
+  .group-desc {
+    color: var(--color-text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin: 0 0 1.5rem;
+  }
+
+  .subsection {
+    margin-bottom: 1.25rem;
+  }
+  .subsection:last-child { margin-bottom: 0; }
+
+  .sub-label {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #94a3b8; /* slate-400 */
+    margin: 0 0 0.7rem;
+  }
+
+  .group-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .techniques {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem 0.85rem;
+  }
+  @media (max-width: 480px) {
+    .techniques { grid-template-columns: 1fr; }
+  }
+
+  .techniques li {
+    display: grid;
+    grid-template-columns: 1rem 1fr;
+    gap: 0.55rem;
+    align-items: center;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--color-text-primary);
+    font-weight: 500;
+  }
+  .tech-marker {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+</style>
