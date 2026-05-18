@@ -149,12 +149,12 @@ const navLinks = [
     padding: 0.55rem 1.05rem;
     margin-left: 0.5rem;
     border-radius: var(--radius-md);
-    background: var(--color-text-primary);
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
     color: white;
     font-size: 0.9rem;
     font-weight: 600;
+    box-shadow: 0 4px 14px -4px rgba(37, 99, 235, 0.45);
     transition:
-      background var(--duration-fast) var(--ease-out),
       transform var(--duration-fast) var(--ease-out),
       box-shadow var(--duration-fast) var(--ease-out);
   }
@@ -162,9 +162,8 @@ const navLinks = [
   .nav-cta svg { transition: transform var(--duration-fast) var(--ease-spring); }
 
   .nav-cta:hover {
-    background: var(--color-accent-primary);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px -6px rgba(37, 99, 235, 0.5);
+    box-shadow: 0 8px 24px -6px rgba(37, 99, 235, 0.55);
   }
   .nav-cta:hover svg { transform: translate(2px, -2px); }
   .nav-cta:active { transform: translateY(0) scale(0.97); }

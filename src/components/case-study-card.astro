@@ -28,30 +28,40 @@ const delayMs = index * 90;
         <img src={study.coverImage} alt="" decoding="async" />
       ) : (
         <div class="cover-fallback">
-          <span class="cover-metric">{study.metric}</span>
           <span class="cover-title">{study.title}</span>
         </div>
       )}
+      <div class="cover-tint" aria-hidden="true"></div>
       <div class="cover-grain" aria-hidden="true"></div>
       <div class="cover-shine" aria-hidden="true"></div>
+      <span class="cover-chip" aria-hidden="true">
+        <span class="chip-text">Architecture Preview</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 17L17 7M17 7H8M17 7V16"/>
+        </svg>
+      </span>
     </div>
   </a>
 
   <div class="card-body">
     <div class="card-meta">
       <span class="card-client">{study.client}</span>
-      <span class="card-dot" aria-hidden="true">·</span>
-      <span class="card-period">{study.period}</span>
+      <span class="card-period">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 2"/>
+        </svg>
+        {study.period}
+      </span>
     </div>
 
     <h3 class="card-title">
       <a href={`/work/${study.slug}/`}>{study.title}</a>
     </h3>
-    <p class="card-metric">{study.metric}</p>
     <p class="card-blurb">{study.blurb}</p>
 
     <div class="card-stack">
-      {study.stack.slice(0, 5).map((s) => <StackPill label={s} />)}
+      {study.stack.slice(0, 7).map((s) => <StackPill label={s} />)}
     </div>
 
     <a class="card-link" href={`/work/${study.slug}/`}>
@@ -133,10 +143,72 @@ const delayMs = index * 90;
     height: 100%;
     object-fit: cover;
     object-position: center;
+    /* Crop in slightly so noisy edge text falls outside the frame */
+    transform: scale(1.18);
+    transform-origin: center;
     transition: transform 700ms var(--ease-premium);
   }
   .cover-wrap:hover .cover-frame img {
-    transform: scale(1.04);
+    transform: scale(1.24);
+  }
+
+  /* Tint: diagonal cool tint so the diagram becomes branded texture, not content */
+  .cover-tint {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg,
+        rgba(15, 23, 42, 0.62) 0%,
+        rgba(15, 23, 42, 0.28) 45%,
+        rgba(37, 99, 235, 0.22) 100%),
+      radial-gradient(ellipse at top right, rgba(14, 165, 233, 0.32), transparent 55%),
+      radial-gradient(ellipse at bottom left, rgba(15, 23, 42, 0.55), transparent 60%);
+    mix-blend-mode: normal;
+    pointer-events: none;
+    transition: opacity var(--duration-base) var(--ease-premium);
+  }
+
+  /* "Architecture Preview ↗" chip — replaces the duplicate title overlay */
+  .cover-chip {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem 0.4rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.95);
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    pointer-events: none;
+    transition:
+      background var(--duration-base) var(--ease-premium),
+      border-color var(--duration-base) var(--ease-premium),
+      transform var(--duration-base) var(--ease-spring);
+  }
+  .cover-chip svg {
+    transition: transform var(--duration-base) var(--ease-spring);
+  }
+  .cover-wrap:hover .cover-chip {
+    background: rgba(37, 99, 235, 0.78);
+    border-color: rgba(255, 255, 255, 0.32);
+    transform: translate(-2px, -2px);
+  }
+  .cover-wrap:hover .cover-chip svg {
+    transform: translate(2px, -2px);
+  }
+  /* Hover-swap chip label to a more CTA-flavored "View full diagram" */
+  .cover-wrap:hover .chip-text::after {
+    content: ' ·  View';
   }
 
   /* Click-to-zoom feel via subtle moving sheen */
@@ -174,15 +246,6 @@ const delayMs = index * 90;
     color: white;
     z-index: 1;
   }
-  .cover-metric {
-    font-family: var(--font-heading);
-    font-size: 0.82rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.22em;
-    opacity: 0.85;
-    margin-bottom: 1rem;
-  }
   .cover-title {
     font-family: var(--font-heading);
     font-size: clamp(1.5rem, 2.5vw, 2.25rem);
@@ -196,23 +259,51 @@ const delayMs = index * 90;
   .card-body { display: flex; flex-direction: column; }
 
   .card-meta {
-    display: flex;
-    gap: 0.5rem;
-    color: var(--color-text-secondary);
-    font-size: 0.88rem;
-    margin-bottom: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
   }
   .card-client {
-    font-weight: 600;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-heading);
+    font-size: clamp(1.05rem, 1.35vw, 1.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.005em;
     color: var(--color-accent-primary);
+    padding-left: 0.7rem;
+  }
+  .card-client::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12%;
+    bottom: 12%;
+    width: 3px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--color-accent-primary), var(--color-accent-secondary));
+  }
+  .card-period {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
     letter-spacing: 0.01em;
   }
-  .card-dot { opacity: 0.5; }
+  .card-period svg {
+    opacity: 0.55;
+  }
 
   .card-title {
-    font-size: clamp(1.6rem, 2.5vw, 2.25rem);
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    font-size: clamp(1.8rem, 2.9vw, 2.6rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
     margin-bottom: 0.5rem;
   }
   .card-title a {
@@ -224,15 +315,6 @@ const delayMs = index * 90;
   }
   .card-title a:hover {
     background-size: 100% 1.5px;
-  }
-
-  .card-metric {
-    color: var(--color-accent-secondary);
-    font-family: var(--font-heading);
-    font-weight: 600;
-    font-size: 0.95rem;
-    letter-spacing: 0.01em;
-    margin-bottom: 1rem;
   }
 
   .card-blurb {

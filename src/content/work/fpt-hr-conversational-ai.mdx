@@ -1,0 +1,111 @@
+---
+title: "Enterprise HR Conversational AI Platform"
+client: "Covestro AG (via FPT Software)"
+period: "Jan 2026 – Present"
+role: "AI Engineer & Platform Migration"
+tldr: "Led migration of HR Conversational AI for Covestro AG — a multi-billion-dollar German chemicals corporation — from legacy monoliths to event-driven AWS microservices. Multi-agent orchestration with LangGraph, semantic caching, Langfuse LLM-as-judge evaluation, Workday SSO, and PII zero-trust at the boundary."
+order: 2
+stack:
+  - LangGraph
+  - AWS Bedrock
+  - EventBridge
+  - SQS
+  - OpenSearch
+  - ElastiCache
+  - Langfuse
+  - Lambda
+  - Workday SSO
+  - PII Redaction
+---
+
+import ArchitectureSection from '../../components/case-study/architecture-section.astro';
+import PhaseMarker from '../../components/case-study/phase-marker.astro';
+
+## Problem
+
+Covestro AG's existing HR conversational AI was a legacy monolith struggling under enterprise scale. Every layer was a liability.
+
+- **Bursty traffic timed out sync endpoints** — the legacy monolith could not absorb spikes.
+- **No continuous evaluation** — factual regressions slipped into production silently.
+- **PII compliance was reactive, not architectural** — sensitive data flowed through logs, caches, and LLM calls without a hard boundary.
+- **Trust boundaries between services were weak** — every hop assumed implicit trust.
+- **Downtime was not an option** — migration had to happen on live production traffic.
+
+<PhaseMarker label="Architecture — Production" highlight />
+
+<ArchitectureSection
+  step="01"
+  title="General Architecture"
+  image="/assets/case-studies/covestro/images/1-general-architecture.png"
+  alt="General system architecture for Covestro AG HR Conversational AI"
+>
+A bird's-eye view of the full platform. The frontend talks to an API gateway, which fans into the **LangGraph multi-agent core**. The agent layer reads and writes through a data plane built on **OpenSearch** (semantic + lexical retrieval), **RDS** (structured HR records), **S3** (document store), and **ElastiCache** (semantic cache). **AWS Bedrock** is the single LLM gateway — one integration, multiple model providers.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="02"
+  title="Regular Chat Flow"
+  image="/assets/case-studies/covestro/images/2-regular-chatflow.png"
+  alt="A normal user chat turn through the LangGraph state machine"
+>
+The happy path for a single user turn. A request enters the router agent, which classifies the intent and **selects the right sub-agent** (policy, leave, payroll, benefits). The selected agent retrieves grounded context, reasons over it, and emits a response checked against guardrails before it ever reaches the user. The full state machine is **LangGraph-native** so every transition is traceable.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="03"
+  title="Data Ingestion Pipeline"
+  image="/assets/case-studies/covestro/images/3-data-ingestion.png"
+  alt="Event-driven HR document ingestion pipeline on AWS"
+>
+HR documents from Workday and the knowledge base land in **S3**, which fires events into **Lambda** chunkers via **SQS**. Chunks are embedded and written to **OpenSearch** alongside their metadata. The pipeline is fully asynchronous and retries on failure — bursty ingest from policy updates no longer blocks the live serving path.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="04"
+  title="Workday SSO Auth Flow"
+  image="/assets/case-studies/covestro/images/4-workday-auth-flow.png"
+  alt="Enterprise SSO via Workday for per-user context isolation"
+>
+Enterprise SSO is non-negotiable at Fortune 500 scale. The platform federates with **Workday** for identity, exchanges tokens at the gateway, and carries a per-user context through every downstream agent call. This isolates HR data per employee and makes audit trails clean.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="05"
+  title="Semantic Caching Layer"
+  image="/assets/case-studies/covestro/images/5-semantic-cache.png"
+  alt="ElastiCache + embedding similarity for semantic response caching"
+  highlight
+  challenge="HR questions repeat constantly, but phrased a hundred different ways. A plain key cache never hits. Without caching, every repeat query burns Bedrock spend and tail latency."
+>
+HR questions cluster around a small set of intents phrased a thousand different ways. A **semantic cache** on **ElastiCache** matches incoming queries to prior answers by embedding similarity. When the similarity score crosses a per-domain threshold, we skip the LLM entirely. This cuts both **Bedrock spend and p95 latency** on repeat queries. Threshold tuning per HR sub-domain was the hard part — too loose poisons answers, too tight defeats the cache.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="06"
+  title="Langfuse Evaluation Loop"
+  image="/assets/case-studies/covestro/images/6-langfuse-evaluation.png"
+  alt="LLM-as-judge evaluation pipeline via Langfuse"
+  highlight
+>
+Multi-agent failures are invisible to unit tests. The fix is **continuous LLM-as-judge evaluation** on Langfuse. Every production trace can be replayed and scored on factuality, helpfulness, and policy adherence by a judge model. Regressions on any sub-agent surface in dashboards before users notice — and we can pin a regression to a specific agent and prompt version, not to a vague "the bot got worse."
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="07"
+  title="PII Zero-Trust"
+  image="/assets/case-studies/covestro/images/7-pii-zero-trust.png"
+  alt="Real-time PII redaction and zero-trust between microservices"
+  highlight
+  challenge="At Fortune 500 scale, PII leaking into logs, caches, or a stray LLM call is a compliance incident, not a bug. The system needed PII boundaries that hold by construction, not by policy."
+>
+Compliance is an architectural constraint, not a feature. PII is **redacted at the boundary** — before logs, before the semantic cache, before any Bedrock call. Between microservices, every hop authenticates and authorizes from scratch (**zero-trust**). The latency cost is real but bounded; the upside is eliminating entire classes of compliance incidents.
+</ArchitectureSection>
+
+## Outcome
+
+- Migrated production HR conversational workload for a **Fortune 500 client** with no downtime.
+- **Event-driven microservices** absorbed traffic spikes that broke the legacy monolith.
+- **Semantic caching** reduced Bedrock spend and tail latency on repeat HR queries.
+- **LLM-as-judge eval loop** runs continuously via Langfuse — factual regressions caught before deploy.
+- **Zero-trust + real-time PII redaction** meet enterprise compliance bars by construction, not policy.
+- **Workday SSO** integrated cleanly for per-user context isolation across the agent layer.

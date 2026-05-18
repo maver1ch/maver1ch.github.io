@@ -16,12 +16,24 @@
         <h1 class="hero-title">Dam Hong Phuc</h1>
         <p class="hero-tagline">AI Full-stack Engineer</p>
 
-        <a href="#work" class="cta-primary">
-          <span>View Work</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M5 12h14M13 6l6 6-6 6"/>
-          </svg>
-        </a>
+        <div class="hero-cta-row">
+          <a href="#work" class="cta-primary">
+            <span>View Work</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+          </a>
+          <a href="/resume.pdf" class="cta-resume" target="_blank" rel="noopener noreferrer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span>Resume</span>
+          </a>
+        </div>
       </div>
 
       <!-- RIGHT column: value prop + highlight -->
@@ -166,11 +178,20 @@
     text-transform: uppercase;
   }
 
+  .hero-cta-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+  }
+
   .cta-primary {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.9rem 1.65rem;
+    min-width: 170px;
+    padding: 0.9rem 1.5rem;
     border-radius: var(--radius-md);
     font-weight: 600;
     font-size: 0.97rem;
@@ -179,6 +200,31 @@
     box-shadow: var(--shadow-glow-primary), 0 4px 12px rgba(37, 99, 235, 0.20);
     transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
   }
+
+  .cta-resume {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 170px;
+    padding: 0.9rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.97rem;
+    color: var(--color-accent-primary);
+    background: #ffffff;
+    border: 1px solid rgba(37, 99, 235, 0.28);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(37, 99, 235, 0.08);
+    transition: transform var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  }
+  .cta-resume:hover {
+    transform: translateY(-2px);
+    border-color: rgba(37, 99, 235, 0.55);
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(37, 99, 235, 0.18);
+  }
+  .cta-resume:active { transform: translateY(0) scale(0.98); }
+  .cta-resume svg { transition: transform var(--duration-base) var(--ease-spring); }
+  .cta-resume:hover svg { transform: translateY(-1px); }
   .cta-primary:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-glow-secondary), 0 12px 32px rgba(37, 99, 235, 0.30);

@@ -16,24 +16,19 @@ stack:
   - Langfuse
   - Qdrant
   - Hierarchical Chunking
-metrics:
-  - label: "Retrieval strategies combined"
-    value: "4"
-  - label: "Phases POC → Production"
-    value: "2"
-  - label: "Source formats normalized"
-    value: "6+"
-  - label: "Observability coverage"
-    value: "End-to-end"
 ---
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
-import DecisionBlock from '../../components/case-study/decision-block.astro';
 import PhaseMarker from '../../components/case-study/phase-marker.astro';
 
 ## Problem
 
-HTI Group needed a single chatbot to unify fragmented HR institutional knowledge spread across **Excel, Docs, Markdown, PowerPoint, PNG, and CSV** sources. Off-the-shelf RAG broke down on complex policy queries that crossed multiple sub-domains: leave requests, payroll, benefits, and tooling. The system also had to evolve from a quick proof-of-concept into a production-grade AWS deployment without rewriting the agent layer.
+HTI Group needed a single chatbot that could carry the weight of fragmented HR institutional knowledge — and then survive the jump from quick demo to enterprise production.
+
+- **Fragmented knowledge** spread across Excel, Docs, Markdown, PowerPoint, PNG, and CSV sources.
+- **Off-the-shelf RAG broke down** on complex policy queries that crossed multiple sub-domains: leave, payroll, benefits, tooling.
+- **POC-to-production was non-negotiable**: the agent layer had to evolve to AWS without a rewrite.
+- **Observability gap**: multi-agent systems fail in subtle ways that unit tests miss.
 
 <PhaseMarker label="Phase 1 — Proof of Concept" />
 
@@ -51,7 +46,6 @@ The foundation of the HR Chatbot. This diagram details the core interaction flow
   title="Multi-Agent Router (ReAct)"
   image="/assets/case-studies/hti/02-multi-agent-router.png"
   alt="Multi-Agent Router"
-  reverse
 >
 The brain of the chatbot. Using the **ReAct methodology**, queries are intercepted, understood, and dynamically routed to specialized sub-agents. This lets the bot handle complex HR policies, leave requests, and payroll inquiries with high accuracy — and makes each sub-agent independently testable and observable.
 </ArchitectureSection>
@@ -73,6 +67,7 @@ A robust offline pipeline that automatically ingests, chunks, and maps unstructu
   image="/assets/case-studies/hti/04-aws-migration-architecture.png"
   alt="AWS Cloud Migration Architecture"
   highlight
+  challenge="The POC ran on a single box. Enterprise needed 99.9% uptime, auto-scaling, VPC isolation, and a clean split between short-lived tool calls and long-running agent workers — without rewriting the agent layer."
 >
 Transitioning from local/on-prem POC to AWS. Leveraging fully managed services and container orchestration to reach enterprise targets: **99.9% uptime, auto-scaling**, and security inside a VPC. Compute split between **AWS Lambda** (event handlers, short-lived tools) and **ECS Fargate** (long-running agent workers).
 </ArchitectureSection>
@@ -82,43 +77,10 @@ Transitioning from local/on-prem POC to AWS. Leveraging fully managed services a
   title="Serverless Ingestion Pipeline"
   image="/assets/case-studies/hti/05-serverless-ingestion-pipeline.png"
   alt="Serverless Ingestion Pipeline"
-  reverse
   highlight
 >
 An alternative, highly optimized ingestion architecture using **serverless cloud functions**. Designed for event-driven document processing — minimizes idle compute cost and maximizes real-time scalability during data upload spikes. Useful when ingestion is bursty and unpredictable rather than steady-state.
 </ArchitectureSection>
-
-## Key Decisions
-
-<DecisionBlock
-  decision="LangGraph + ReAct multi-agent over a single mega-prompt"
-  why="Separation of concerns. Each HR sub-domain (policies, leave, payroll) becomes its own agent with bounded context. Easier to test, eval, and route. Cheap to add a new domain — drop in a new agent and update the router."
-  tradeoff="More moving parts. Requires distributed tracing (solved with Langfuse) to debug routing decisions across agents."
-/>
-
-<DecisionBlock
-  decision="Hierarchical Semantic Chunking with Auto Merge + LLM Contextualization"
-  why="Naive fixed-size chunking lost the relationship between sections. Hierarchical chunks preserve parent–child context; LLM contextualization injects a one-line summary into each child chunk so retrieval hits land with their original meaning intact."
-  tradeoff="Higher offline ingestion cost. Acceptable because HR documents update slowly and retrieval quality is the bottleneck, not ingestion throughput."
-/>
-
-<DecisionBlock
-  decision="Hybrid retrieval: Vector + Full-text + Graph + Pandas"
-  why="HR data is heterogeneous. Vector search wins on semantic queries; full-text on policy IDs and exact phrases; graph on org-structure questions; Pandas on tabular data like leave balances. A single retriever could not cover all four, so we route per query type."
-  tradeoff="Three retrievers to maintain. Mitigated by keeping each one simple and orchestrated by the LangGraph router."
-/>
-
-<DecisionBlock
-  decision="AWS CDK in TypeScript for infrastructure"
-  why="The agent layer was Python, the infra layer needed strong typing for the team's React/TS background. CDK gave us type-safe IaC with reusable constructs for Lambda + ECS + observability stacks."
-  tradeoff="Two languages in one repo. Worth it for repeatable, peer-reviewed deploys instead of clicking through the AWS console."
-/>
-
-<DecisionBlock
-  decision="Distributed Langfuse observability from Day 1"
-  why="Multi-agent systems fail in ways that single LLM calls do not — wrong routing, lost context, hallucinated tool calls. Langfuse traces every step so we can attribute failures to the correct sub-agent and ship fixes."
-  tradeoff="Added latency and storage cost. Both are negligible compared to debugging blind in production."
-/>
 
 ## Outcome
 
