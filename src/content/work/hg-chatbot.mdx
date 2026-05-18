@@ -39,7 +39,7 @@ HG Group needed a chatbot that could answer internal questions over a sprawling 
   image="/assets/case-studies/hg-chatbot/01-user-flow.png"
   alt="End-to-end user flow for HG Chatbot — question to grounded answer with citations"
 >
-The user-facing loop, end to end. Employees ask a question through a web or mobile chat interface. The HG Chatbot AI brain searches the company knowledge base — PDF, Docx, PPT, Excel, and scanned images — and returns a grounded answer with source citations in seconds. Citations are non-negotiable: business stakeholders only trust answers they can verify against the source document.
+The user-facing loop. Employees ask via web or mobile chat; the AI brain searches PDF, Docx, PPT, Excel, and scanned images and returns a grounded answer with citations in seconds. Citations are non-negotiable — business stakeholders only trust answers they can verify against the source.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -48,7 +48,7 @@ The user-facing loop, end to end. Employees ask a question through a web or mobi
   image="/assets/case-studies/hg-chatbot/02-data-ingestion-pipeline.png"
   alt="Format-aware ingestion pipeline with hierarchical chunking and dual-index storage"
 >
-The offline pipeline. Raw documents pass through **format-specific parsers** — PDF, Docx, PPT, Excel each with their own parser; scanned images go through **Gemini 2.5 Flash OCR** for vision-based reading. Parsed text is normalized, cleaned, deduplicated, and metadata-extracted, then split via **hierarchical chunking** — large parent sections with small child chunks. Each child chunk is **contextualized** by prepending its previous and next sibling so retrieval hits never lose surrounding meaning. Embeddings come from **BGE-M3** (multilingual, 1024-dim) served via **Ray Serve**, and land in a **dual index**: **Qdrant** for dense vectors and **MongoDB** for keyword + metadata search.
+The offline pipeline. Raw docs hit **format-specific parsers** (PDF, Docx, PPT, Excel); scanned images go through **Gemini 2.5 Flash OCR**. Parsed text is split via **hierarchical chunking** — large parents with small children, each contextualized by prepending its previous and next sibling so retrieval never loses surrounding meaning. **BGE-M3** embeddings (multilingual, 1024-dim) served via **Ray Serve** land in a **dual index**: **Qdrant** for dense, **MongoDB** for keyword + metadata.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -57,7 +57,7 @@ The offline pipeline. Raw documents pass through **format-specific parsers** —
   image="/assets/case-studies/hg-chatbot/03-rag-pipeline-retrieval.png"
   alt="Hybrid retrieval pipeline — embed, search, fuse, rerank, auto-merge, multi-LLM answer"
 >
-The online answering path. A user query is embedded (BGE-M3) and parsed into a keyword query in parallel. **Hybrid search** runs both: Qdrant dense search and MongoDB keyword search return their own top-K child chunks. Candidates are **fused, deduplicated, and reranked** with a **Cross-Encoder (ms-marco-MiniLM-L-6-v2)**. An **auto-merge retrieval layer** then decides: if many sibling children of the same parent hit, promote to the **parent chunk** for richer context; if hits are sparse, **keep the children**. The final top-K context goes into a prompt, and a **multi-LLM router** chooses between **GPT API** and **Gemini API** depending on the query type and cost target. The output is a grounded answer with source citations.
+The online path. A query is embedded (BGE-M3) and parsed into keywords in parallel. **Hybrid search** runs both: Qdrant dense + MongoDB keyword each return top-K children. Candidates are **fused, deduped, and reranked** with a **Cross-Encoder (ms-marco-MiniLM-L-6-v2)**. An **auto-merge** layer promotes to **parent chunk** when many siblings hit, otherwise keeps children. The final context goes into a prompt, and a **multi-LLM router** picks **GPT** or **Gemini** by query type and cost — output is a grounded answer with citations.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -67,7 +67,7 @@ The online answering path. A user query is embedded (BGE-M3) and parsed into a k
   alt="On-premise AIOps: self-hosted application, data stores, and observability with external LLM APIs only"
   highlight
 >
-Everything except the external LLM calls lives on-prem. The **application layer** — Chatbot API Service and Ingestion Service — runs locally. The **model layer** is served by **Ray Serve**: BGE-M3 for embeddings and ms-marco-MiniLM cross-encoder for reranking, both on-prem. **Data stores** — Qdrant for vectors and MongoDB for keyword + metadata — are also on-prem. Only **GPT API, Gemini API, and Gemini 2.5 Flash OCR** are cloud-only by necessity. The **observability stack** is unified across components: **Langfuse** for LLM traces, evaluations, and cost; **Prometheus** for system + model metrics (CPU, GPU, latency); **Grafana** for dashboards and alerts. The on-premise constraint forced disciplined resource budgeting and model versioning from day one — patterns that translated cleanly into the AWS-native systems I later built.
+Everything except external LLM calls lives on-prem. The **app layer** (Chatbot API + Ingestion Service), the **model layer** (BGE-M3 + ms-marco-MiniLM cross-encoder via **Ray Serve**), and the **data stores** (Qdrant + MongoDB) all run locally. Only **GPT, Gemini, and Gemini 2.5 Flash OCR** are cloud-only by necessity. The **observability stack** is unified: **Langfuse** for LLM traces and cost; **Prometheus** for CPU/GPU/latency metrics; **Grafana** for dashboards and alerts. The on-prem constraint forced disciplined resource budgeting and model versioning — patterns that translated cleanly into the AWS-native systems I later built.
 </ArchitectureSection>
 
 ## Outcome
