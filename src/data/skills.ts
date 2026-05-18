@@ -27,12 +27,12 @@ export const skillGroups: SkillGroup[] = [
     category: 'LLMOps & Eval',
     description: 'Observability, evaluation, compliance, performance.',
     tools: ['Langfuse', 'LangSmith'],
-    techniques: ['LLM-as-Judge Eval', 'Semantic Caching', 'PII Redaction', 'SSE Streaming', 'Prompt Chaining', 'Distributed Tracing'],
+    techniques: ['LLM-as-Judge Eval', 'Claim-level Fact-Checking (FEVER)', 'Semantic Caching', 'PII Redaction', 'SSE Streaming', 'Prompt Chaining', 'Distributed Tracing'],
   },
   {
     category: 'Data & Retrieval',
     description: 'Vector, full-text, graph search. Hybrid retrieval at scale.',
-    tools: ['Qdrant', 'OpenSearch', 'PostgreSQL', 'MongoDB', 'Redis', 'Kafka', 'RabbitMQ'],
-    techniques: ['Hybrid Search (Vector + BM25 + Graph)', 'Cross-Encoder Reranking', 'Hierarchical Semantic Chunking', 'Auto-Merge Retrieval'],
+    tools: ['Qdrant', 'FAISS', 'Neo4j', 'OpenSearch', 'PostgreSQL', 'MongoDB', 'Redis', 'OLMoCR', 'Kafka', 'RabbitMQ'],
+    techniques: ['Hybrid Search (Vector + BM25 + Graph)', 'Knowledge-Graph RAG', 'Cross-Encoder Reranking', 'Hierarchical Semantic Chunking', 'Auto-Merge Retrieval'],
   },
 ];
