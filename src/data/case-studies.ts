@@ -44,4 +44,15 @@ export const caseStudies: CaseStudyMeta[] = [
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
     stack: ['Qdrant', 'AWS Bedrock', 'LangChain', 'Prompt Chaining', 'SQS', 'Python'],
   },
+  {
+    slug: 'hg-chatbot',
+    title: 'Enterprise Internal AI Chatbot',
+    client: 'HG Group',
+    period: 'Sep 2024 – Feb 2025',
+    blurb:
+      'On-premise RAG chatbot over the company document library. Hybrid Qdrant + MongoDB retrieval, hierarchical chunking, multi-LLM routing (GPT + Gemini), and self-hosted observability with Langfuse + Prometheus + Grafana.',
+    coverImage: '/assets/case-studies/hg-chatbot/04-on-premise-aiops-model-layer.png',
+    coverGradient: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+    stack: ['BGE-M3', 'Qdrant', 'MongoDB', 'Ray Serve', 'Langfuse', 'Prometheus', 'GPT API'],
+  },
 ];

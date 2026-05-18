@@ -1,0 +1,80 @@
+---
+title: "Enterprise Internal AI Chatbot"
+client: "HG Group"
+period: "Sep 2024 – Feb 2025"
+role: "AI Engineer"
+tldr: "Built an on-premise enterprise chatbot for HG Group — RAG-grounded answers over the company's internal document library. Hybrid dense + keyword retrieval with hierarchical chunking, multi-LLM routing across GPT and Gemini APIs, and a self-hosted observability stack on Langfuse + Prometheus + Grafana."
+order: 4
+stack:
+  - BGE-M3
+  - Qdrant
+  - MongoDB
+  - Ray Serve
+  - Cross-Encoder Reranker
+  - Hierarchical Chunking
+  - Langfuse
+  - Prometheus
+  - Grafana
+  - GPT API
+  - Gemini API
+---
+
+import ArchitectureSection from '../../components/case-study/architecture-section.astro';
+import PhaseMarker from '../../components/case-study/phase-marker.astro';
+
+## Problem
+
+HG Group needed a chatbot that could answer internal questions over a sprawling document library — and it had to live **on-premise** for compliance.
+
+- **Heterogeneous source formats**: PDFs, Word docs, PPT decks, Excel sheets, and scanned PNG images.
+- **On-premise constraint**: most of the stack had to be self-hosted; only the LLM call could touch external APIs.
+- **Audience was non-technical**: HR, recruiters, and business stakeholders — answers needed to be grounded with source citations, not hand-wavy summaries.
+- **Latency expectation**: trusted answer with sources in seconds, not tens of seconds.
+
+<PhaseMarker label="Architecture — On-Premise RAG" highlight />
+
+<ArchitectureSection
+  step="01"
+  title="User Flow — How It Works"
+  image="/assets/case-studies/hg-chatbot/01-user-flow.png"
+  alt="End-to-end user flow for HG Chatbot — question to grounded answer with citations"
+>
+The user-facing loop, end to end. Employees ask a question through a web or mobile chat interface. The HG Chatbot AI brain searches the company knowledge base — PDF, Docx, PPT, Excel, and scanned images — and returns a grounded answer with source citations in seconds. Citations are non-negotiable: business stakeholders only trust answers they can verify against the source document.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="02"
+  title="Data Ingestion Pipeline"
+  image="/assets/case-studies/hg-chatbot/02-data-ingestion-pipeline.png"
+  alt="Format-aware ingestion pipeline with hierarchical chunking and dual-index storage"
+>
+The offline pipeline. Raw documents pass through **format-specific parsers** — PDF, Docx, PPT, Excel each with their own parser; scanned images go through **Gemini 2.5 Flash OCR** for vision-based reading. Parsed text is normalized, cleaned, deduplicated, and metadata-extracted, then split via **hierarchical chunking** — large parent sections with small child chunks. Each child chunk is **contextualized** by prepending its previous and next sibling so retrieval hits never lose surrounding meaning. Embeddings come from **BGE-M3** (multilingual, 1024-dim) served via **Ray Serve**, and land in a **dual index**: **Qdrant** for dense vectors and **MongoDB** for keyword + metadata search.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="03"
+  title="RAG Pipeline with Retrieval"
+  image="/assets/case-studies/hg-chatbot/03-rag-pipeline-retrieval.png"
+  alt="Hybrid retrieval pipeline — embed, search, fuse, rerank, auto-merge, multi-LLM answer"
+>
+The online answering path. A user query is embedded (BGE-M3) and parsed into a keyword query in parallel. **Hybrid search** runs both: Qdrant dense search and MongoDB keyword search return their own top-K child chunks. Candidates are **fused, deduplicated, and reranked** with a **Cross-Encoder (ms-marco-MiniLM-L-6-v2)**. An **auto-merge retrieval layer** then decides: if many sibling children of the same parent hit, promote to the **parent chunk** for richer context; if hits are sparse, **keep the children**. The final top-K context goes into a prompt, and a **multi-LLM router** chooses between **GPT API** and **Gemini API** depending on the query type and cost target. The output is a grounded answer with source citations.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="04"
+  title="On-Premise AIOps — Model Layer"
+  image="/assets/case-studies/hg-chatbot/04-on-premise-aiops-model-layer.png"
+  alt="On-premise AIOps: self-hosted application, data stores, and observability with external LLM APIs only"
+  highlight
+>
+Everything except the external LLM calls lives on-prem. The **application layer** — Chatbot API Service and Ingestion Service — runs locally. The **model layer** is served by **Ray Serve**: BGE-M3 for embeddings and ms-marco-MiniLM cross-encoder for reranking, both on-prem. **Data stores** — Qdrant for vectors and MongoDB for keyword + metadata — are also on-prem. Only **GPT API, Gemini API, and Gemini 2.5 Flash OCR** are cloud-only by necessity. The **observability stack** is unified across components: **Langfuse** for LLM traces, evaluations, and cost; **Prometheus** for system + model metrics (CPU, GPU, latency); **Grafana** for dashboards and alerts. The on-premise constraint forced disciplined resource budgeting and model versioning from day one — patterns that translated cleanly into the AWS-native systems I later built.
+</ArchitectureSection>
+
+## Outcome
+
+- **Trusted answers in seconds** — grounded responses with source citations across 5+ document formats.
+- **Hybrid retrieval** (Qdrant dense + MongoDB keyword + cross-encoder rerank + auto-merge) handled both semantic and exact-phrase queries without query-routing overhead at the front door.
+- **On-premise deployment** met the compliance bar without sacrificing model quality — external LLM calls were the only off-prem dependency.
+- **Multi-LLM routing** (GPT + Gemini) gave the team a cost/quality dial per query type, and avoided single-vendor lock-in on the answering layer.
+- **Unified observability** via Langfuse + Prometheus + Grafana meant every step — embedding latency, retrieval recall, LLM cost, GPU utilization — was visible from one pane.
+- **Patterns that translated forward**: the hierarchical chunking, hybrid retrieval, and reranking patterns built here informed the production work I later did at FPT Software for Fortune 500 clients.
