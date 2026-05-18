@@ -1,0 +1,139 @@
+---
+title: "GRI-Aligned ESG Assessment for Vietnamese Banks"
+client: "FPT University Capstone (AIP491)"
+period: "Jan 2026 – May 2026"
+role: "AI Engineer / Researcher"
+tldr: "Capstone research building a GRI-aligned ESG assessment system over Vietnamese bank sustainability reports. Neo4j knowledge graph + hybrid retrieval (BM25 + dense + cross-encoder) + claim-level LLM-as-judge fact-checking against GRI Universal Standards 200/300/400. 88.14% accuracy on 1,440 expert-annotated QA pairs across 18 banks."
+order: 5
+stack:
+  - Neo4j
+  - Knowledge Graph
+  - Qwen3-8B
+  - Llama 3.1-8B
+  - OLMoCR
+  - FAISS
+  - BM25
+  - Cross-Encoder Reranker
+  - LLM-as-a-Judge
+  - FEVER
+  - GRI Standards
+  - PyMuPDF
+  - Cypher
+---
+
+import ArchitectureSection from '../../components/case-study/architecture-section.astro';
+import PhaseMarker from '../../components/case-study/phase-marker.astro';
+
+## Problem
+
+ESG disclosure for Vietnamese banks has moved from a PR exercise to a hard compliance and capital-markets metric — but the reports themselves are brutal to query.
+
+- **Heterogeneous PDFs**: 28–80 page sustainability reports with multi-column layouts, embedded tables, mixed heading hierarchies, and scanned figures.
+- **Vocabulary mismatch**: local Vietnamese framing rarely aligns one-to-one with GRI Universal Standards (200 / 300 / 400 series), so lexical retrieval falls over.
+- **Hallucination risk**: standard RAG invents numbers or misattributes them across companies and years — unacceptable when an answer is going to a regulator or an analyst.
+- **Multi-hop reasoning**: real analyst questions cross sections (e.g. green credit balance × scope-1 emissions × board-diversity ratios) — single-shot vector search can't compose the answer.
+
+<PhaseMarker label="Phase 1 — Foundation" highlight />
+
+<ArchitectureSection
+  step="01"
+  title="System Architecture — 5 Modules at a Glance"
+  image="/assets/case-studies/esg-business-report/1-overall-system-architecture.png"
+  alt="High-level system architecture — five modules covering metadata extraction, report processing, knowledge graph construction, KG-driven RAG, and automated fact-checking"
+  highlight
+>
+The whole pipeline at one glance. Five modules in two layers: an **offline knowledge layer** (Modules 1–3) that turns GRI standards and raw bank PDFs into a Neo4j graph, and an **online answer layer** (Modules 4–5) that handles a user question with KG-driven retrieval and post-generation fact-checking. Each module has a single, testable job — the rest of this page walks them in order.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="02"
+  title="Module 1 — GRI Metadata Extraction Pipeline"
+  image="/assets/case-studies/esg-business-report/2-metadata-extraction.png"
+  alt="GRI metadata extraction pipeline — PyMuPDF parsing followed by LLM-driven semantic extraction into a 5-tuple structured record"
+>
+The reference layer. Official GRI standards (Universal + Series 200 Economic / 300 Environmental / 400 Social) are parsed with **PyMuPDF** into reading-order chunks, then passed to an LLM with **in-context few-shot examples** of ESG domain expertise. The output is a structured **5-tuple per disclosure**: category, indicator, title, disclosure, detail. This becomes the controlled vocabulary every downstream module aligns to.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="03"
+  title="Module 2 — ESG Reports Preprocessing"
+  image="/assets/case-studies/esg-business-report/3-report-processing.png"
+  alt="ESG reports preprocessing pipeline — OLMoCR linearization, RAP and ALIGN ToC anchoring, Qwen3-4B sliding-window segmentation, hierarchical labeling"
+>
+The raw-PDF side. Bank reports go through **OLMoCR** (a vision-language linearizer) to flatten chaotic multi-column pages and embedded tables into machine-readable text. **RAP + ALIGN** parses the table of contents and anchors headings to the body. **Qwen3-4B** then uses a sliding window to find semantic breakpoints — coherent disclosure sections, not fixed-size chunks. Finally a 4-level label is predicted: **Category → GRI Indicator → Statement Type → Sentiment**.
+</ArchitectureSection>
+
+<PhaseMarker label="Phase 2 — Knowledge & Retrieval" highlight />
+
+<ArchitectureSection
+  step="04"
+  title="Module 3 — ESG Knowledge Graph in Neo4j"
+  image="/assets/case-studies/esg-business-report/4-knowledge-graph.png"
+  alt="ESG knowledge graph construction — 5 node types and relational edges including HAS_REPORT, CONTAINS, RELATED_TO, BELONGS_TO"
+>
+Annotated segments and standardized GRI metadata get materialized into a **Neo4j graph** with 5 node types (**Company, Report, ESG_Statement, GRI_Indicator, ESG_Category**) and explicit edges (HAS_REPORT, CONTAINS, RELATED_TO, BELONGS_TO). Each statement node carries its semantic vector embedding **and** its provenance metadata (company, year, page). This is the move that unlocks both graph traversal and 100% source-traceable answers downstream.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="05"
+  title="Module 4 — KG-Driven Hybrid RAG"
+  image="/assets/case-studies/esg-business-report/5-kg-rag.png"
+  alt="KG-driven retrieval-augmented generation pipeline — question understanding, Cypher candidate generation, dual-stream scoring, hybrid evidence fusion, provenance-grounded generation"
+  highlight
+>
+The online path. A user question is classified across ESG dimensions, then an LLM translates it into a structured **Cypher query** that pulls candidate evidence from the Neo4j graph — not the usual top-K vector lookup. A **dual-stream scorer** ranks candidates by **semantic similarity** and **keyword overlap** in parallel. The fused, deduped top set is passed to the LLM with full provenance metadata attached (company, year, page, GRI indicator), so every generated sentence is traceable to its source.
+</ArchitectureSection>
+
+<PhaseMarker label="Phase 3 — Reliability: Automated Fact-Checking" highlight />
+
+<ArchitectureSection
+  step="06"
+  title="Module 5 — Fact-Checking Pipeline Overview"
+  image="/assets/case-studies/esg-business-report/6-fact-checking.png"
+  alt="Six-stage automated fact-checking pipeline — atomic claim extraction, query generation, hybrid retrieval, rerank and distill, LLM-as-judge, aggregation"
+>
+The reliability layer. Every generated answer is decomposed into **atomic claims**, then each claim drives its own retrieval, reranking, and verdict pass — a six-stage pipeline ending in an aggregated **verification report**. This is what flips the system from "RAG that sometimes hallucinates" into something a compliance team can actually put in front of an analyst or regulator.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="07"
+  title="Hybrid Retrieval & Cross-Encoder Reranking"
+  image="/assets/case-studies/esg-business-report/7-retrieval-reranking.png"
+  alt="Stage 3-4 evidence construction — parallel hybrid retrieval from internal BM25 + dense FAISS and external web search, then deduplication, cross-encoder reranking, and top-K distillation"
+>
+Inside fact-checking, retrieval runs in parallel across two channels: **internal** (BM25 + dense FAISS over the private ESG corpus) and **external** (Google-compatible web search for real-time and third-party data). Candidates are merged and deduplicated by (text, source) while keeping the max score. A **cross-encoder** with token-level attention then catches what the bi-encoder misses — numeric agreement, negation, unit mismatches — and the top-K survivors become the distilled evidence set.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="08"
+  title="Verdicts, Confidence Scoring, Review-Trigger"
+  image="/assets/case-studies/esg-business-report/8-verdict-result-aggregation.png"
+  alt="Verdict aggregation — LLM-as-a-judge assigns FEVER-style labels (SUPPORTS / NOT_ENOUGH_INFO / REFUTES), then signed and overall confidence is computed and a manual review flag fires below threshold"
+  highlight
+>
+An **LLM-as-a-judge** assigns each claim a **FEVER-style label** (SUPPORTS / REFUTES / NOT_ENOUGH_INFO). Labels are mapped to polarity and aggregated into two numbers: an **overall confidence** (mean γ) and a **signed confidence** in [-1, 1] where positive means support and negative means refutation. When signed confidence drops below threshold, a **manual review flag** fires — the system never silently ships a low-confidence answer. This is the part that makes the architecture usable in a regulated workflow.
+</ArchitectureSection>
+
+<PhaseMarker label="Phase 4 — Validation" />
+
+<ArchitectureSection
+  step="09"
+  title="Qualitative Case Studies — VPBank, ACB, BIDV"
+  image="/assets/case-studies/esg-business-report/9-examples.png"
+  alt="Three qualitative case studies — VPBank 2024 green credit growth, ACB 2023 gender equality in management, BIDV cross-year electricity efficiency tracking"
+>
+Three worked examples from the benchmark. **VPBank 2024**: +48.5% green credit growth (page 44, GRI 3-3) — the system also surfaces a VND 21,943 bn outstanding balance and 6.5× customer growth, giving the analyst volume *and* reach. **ACB 2023**: Yes, 51% female managers (page 40, GRI 405-1), plus adjacent board-level diversity context. **BIDV 2023 → 2024**: cross-year electricity efficiency, where the denominator changes between cycles — the framework preserves each report's original normalization basis so cross-year tracking stays honest.
+</ArchitectureSection>
+
+## Outcome
+
+- **88.14% overall answer accuracy** on the expert-annotated benchmark (KG_Enhanced + Qwen3-8B) — up from 69.57% on baseline KG and 53.65% on BM25.
+- **+30 points Recall@3** vs BM25 baseline (83.0% vs 52.5%); KG-aware retrieval is the lever, cross-encoder reranking is the multiplier.
+- **Expert-validated benchmark**: 1,440 question-document pairs (120 questions × 12 reports) annotated by ESG domain experts. Balanced across Environmental (45.8%), Social (26.7%), and Governance (27.5%) — designed to stress-test the system, not flatter it.
+- **Claim-level reliability layer**: FEVER-style verdicts with signed confidence in [-1, 1] and a manual-review trigger below threshold — production-grade pattern for regulated domains where silent failure is unacceptable.
+- **Provenance to the page**: every answer traceable to *company, year, page, and GRI indicator*. Non-negotiable for ESG analytics, audit, and regulator-facing workflows.
+- **Patterns that translated forward**: KG + hybrid retrieval + cross-encoder reranking + LLM-as-judge fact-checking — the same patterns I later applied to production AWS RAG systems at FPT Software for Fortune 500 clients.
+
+## Research credit
+
+AIP491 Group 2, FPT University, Spring 2026. Co-authors: Nguyen Minh Quang, Vuong Anh Binh, Dam Hong Phuc, Le Xuan Hieu. Supervisor: MS Le Dinh Huynh.
