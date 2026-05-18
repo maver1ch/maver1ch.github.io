@@ -46,13 +46,15 @@ const delayMs = index * 90;
   <div class="card-body">
     <div class="card-meta">
       <span class="card-client">{study.client}</span>
-      <span class="card-period">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"/>
-          <path d="M12 7v5l3 2"/>
-        </svg>
-        {study.period}
-      </span>
+      {study.period && (
+        <span class="card-period">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3 2"/>
+          </svg>
+          {study.period}
+        </span>
+      )}
     </div>
 
     <h3 class="card-title">

@@ -45,7 +45,7 @@ const seoDescription =
       <h1 class="case-title">{title}</h1>
       <div class="case-meta">
         <span><strong>Client:</strong> {client}</span>
-        <span><strong>Period:</strong> {period}</span>
+        {period && <span><strong>Period:</strong> {period}</span>}
         <span><strong>Role:</strong> {role}</span>
       </div>
     </header>
