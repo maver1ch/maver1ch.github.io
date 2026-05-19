@@ -16,20 +16,17 @@ const channels = [
   },
   {
     label: 'LinkedIn',
-    value: 'linkedin.com/in/phuc-dam-a74776247',
     href: 'https://www.linkedin.com/in/phuc-dam-a74776247/',
     icon: 'linkedin',
   },
   {
     label: 'GitHub',
-    value: 'github.com/maver1ch',
     href: 'https://github.com/maver1ch',
     icon: 'github',
   },
   {
     label: 'Upwork',
-    value: 'Available for contract',
-    href: 'https://www.upwork.com/freelancers/~damhongphuc',
+    href: 'https://www.upwork.com/freelancers/~017fe57ba5e90fd672?nav_dir=pop',
     icon: 'upwork',
   },
 ];
@@ -82,7 +79,7 @@ const channels = [
               </span>
               <span class="channel-meta">
                 <span class="channel-label">{label}</span>
-                <span class="channel-value">{value}</span>
+                {value && <span class="channel-value">{value}</span>}
               </span>
               <span class="channel-arrow" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
