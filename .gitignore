@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# private capstone slides (teammate names + student IDs) — never publish
+public/assets/case-studies/esg-business-report/AIP491*.pdf

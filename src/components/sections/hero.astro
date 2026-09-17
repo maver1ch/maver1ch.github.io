@@ -53,22 +53,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Bottom row: 3 stat cards full width -->
-    <div class="hero-meta tabular">
-      <div class="meta-card">
-        <span class="meta-value">3+</span>
-        <span class="meta-label">Years building<br/>production AI</span>
-      </div>
-      <div class="meta-card">
-        <span class="meta-value">5</span>
-        <span class="meta-label">Enterprise<br/>case studies</span>
-      </div>
-      <div class="meta-card">
-        <span class="meta-value">AWS</span>
-        <span class="meta-label">Certified Solutions<br/>Architect (SAA)</span>
-      </div>
-    </div>
   </div>
 
 </section>
@@ -141,7 +125,6 @@
     gap: 3.5rem;
     align-items: stretch;
     text-align: left;
-    margin-bottom: 3rem;
   }
 
   /* LEFT — identity */
@@ -300,57 +283,6 @@
     color: #0369a1;
   }
 
-  /* Meta cards — 3 compact cards, content centered */
-  .hero-meta {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.85rem;
-    max-width: 820px;
-    margin: 0 auto;
-  }
-  .meta-card {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 0.95rem 1rem;
-    border-radius: var(--radius-xl);
-    background: var(--color-card-bg);
-    border: 1px solid var(--color-card-border);
-    backdrop-filter: blur(14px);
-    box-shadow: var(--shadow-xs);
-    text-align: left;
-    transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
-  }
-  .meta-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-    border-color: rgba(37, 99, 235, 0.2);
-  }
-  .meta-value {
-    font-family: var(--font-heading);
-    font-size: clamp(1.85rem, 2.5vw, 2.4rem);
-    font-weight: 700;
-    line-height: 1;
-    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    white-space: nowrap;
-  }
-  .meta-unit {
-    font-size: 0.7em;
-    opacity: 0.7;
-    font-weight: 600;
-  }
-  .meta-label {
-    color: var(--color-text-secondary);
-    font-size: 0.85rem;
-    font-weight: 500;
-    line-height: 1.4;
-    letter-spacing: 0.01em;
-  }
-
   /* Mobile */
   @media (max-width: 900px) {
     .hero-main {
@@ -370,8 +302,6 @@
   }
 
   @media (max-width: 720px) {
-    .hero-meta { grid-template-columns: 1fr; gap: 0.7rem; }
-    .meta-card { padding: 0.95rem 1.1rem; }
     .hero-grid-frame { display: none; }
   }
 
