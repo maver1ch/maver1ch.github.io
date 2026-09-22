@@ -12,17 +12,6 @@ export interface CaseStudyMeta {
 
 export const caseStudies: CaseStudyMeta[] = [
   {
-    slug: 'hti-agentic-chatbot',
-    title: 'Enterprise HR Agentic Chatbot',
-    client: 'HTI Group',
-    period: 'Apr 2025 – Dec 2025',
-    blurb:
-      'LangGraph multi-agent system over hierarchical semantic chunks. AWS Lambda + ECS Fargate. Distributed observability via Langfuse. POC to enterprise production.',
-    coverImage: '/assets/case-studies/hti/01-high-level-architecture.png',
-    coverGradient: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
-    stack: ['LangGraph', 'LlamaIndex', 'AWS Lambda', 'ECS Fargate', 'Langfuse', 'AWS CDK', 'Qdrant'],
-  },
-  {
     slug: 'fpt-hr-conversational-ai',
     title: 'HR Conversational AI Platform',
     client: 'Covestro AG (via FPT Software)',
@@ -43,6 +32,17 @@ export const caseStudies: CaseStudyMeta[] = [
     coverImage: '/assets/case-studies/fpt-contract/images/2-high-level-architecture.png',
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
     stack: ['Qdrant', 'AWS Bedrock', 'LangChain', 'Prompt Chaining', 'SQS', 'Python'],
+  },
+  {
+    slug: 'hti-agentic-chatbot',
+    title: 'Enterprise HR Agentic Chatbot',
+    client: 'HTI Group',
+    period: 'Apr 2025 – Dec 2025',
+    blurb:
+      'LangGraph multi-agent system over hierarchical semantic chunks. AWS Lambda + ECS Fargate. Distributed observability via Langfuse. POC to enterprise production.',
+    coverImage: '/assets/case-studies/hti/01-high-level-architecture.png',
+    coverGradient: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
+    stack: ['LangGraph', 'LlamaIndex', 'AWS Lambda', 'ECS Fargate', 'Langfuse', 'AWS CDK', 'Qdrant'],
   },
   {
     slug: 'hg-chatbot',
