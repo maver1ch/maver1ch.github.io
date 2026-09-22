@@ -2,8 +2,8 @@
 title: "Enterprise HR Conversational AI Platform"
 client: "Covestro AG (via FPT Software)"
 period: "Jan 2026 – Present"
-role: "AI Engineer & Platform Migration"
-tldr: "Led migration of HR Conversational AI for Covestro AG — a multi-billion-dollar German chemicals corporation — from legacy monoliths to event-driven AWS microservices. Multi-agent orchestration with LangGraph, semantic caching, Langfuse LLM-as-judge evaluation, Workday SSO, and PII zero-trust at the boundary."
+role: "AIops & Platform Engineer"
+tldr: "Took over a live HR assistant serving employees across countries, then led its migration from a legacy monolith to event-driven AWS microservices. Multi-agent orchestration with LangGraph, a semantic cache for repeat questions, Langfuse observability with PII dropped in production, RAGAS evaluation scored by an independent judge model, Workday SSO, and permission filtering enforced server-side."
 order: 2
 stack:
   - LangGraph
@@ -23,13 +23,13 @@ import PhaseMarker from '../../components/case-study/phase-marker.astro';
 
 ## Problem
 
-Covestro AG's existing HR conversational AI was a legacy monolith struggling under enterprise scale. Every layer was a liability.
+Covestro AG's HR assistant was already serving employees in production — but it had been in maintenance-only mode for about a year, and nobody was measuring it. Every layer was a liability.
 
-- **Bursty traffic timed out sync endpoints** — the legacy monolith could not absorb spikes.
-- **No continuous evaluation** — factual regressions slipped into production silently.
-- **PII compliance was reactive, not architectural** — sensitive data flowed through logs, caches, and LLM calls without a hard boundary.
-- **Trust boundaries between services were weak** — every hop assumed implicit trust.
-- **Downtime was not an option** — migration had to happen on live production traffic.
+- **Nothing was measured** — retrieval recall sat at 52.7% on the first baseline, token/cost metrics were defined but never emitted, and most dashboards were over a year stale.
+- **Data quality broke retrieval** — the HTML converter flattened every table in the knowledge base, so salary and benefit tables lost their rows and columns.
+- **PII compliance was an architectural constraint** — production traces and logs could not carry user content, which shaped the whole observability design.
+- **Permissions were coarse** — article visibility depended on country and legal entity, with no way to publish HR-only content safely.
+- **Downtime was not an option** — every change had to ship against live production traffic.
 
 <PhaseMarker label="Architecture — Production" highlight />
 
@@ -75,19 +75,19 @@ Enterprise SSO is non-negotiable at Fortune 500 scale. The platform federates wi
   image="/assets/case-studies/covestro/images/5-semantic-cache.png"
   alt="ElastiCache + embedding similarity for semantic response caching"
   highlight
-  challenge="HR questions repeat constantly, but phrased a hundred different ways. A plain key cache never hits. Without caching, every repeat query burns Bedrock spend and tail latency."
+  challenge="HR questions repeat constantly, but phrased a hundred different ways. A plain key cache never hits — and in a system where article visibility depends on country and role, a shared cache is also a leak waiting to happen."
 >
-HR questions cluster around a small set of intents phrased a thousand different ways. A **semantic cache** on **ElastiCache** matches incoming queries to prior answers by embedding similarity. When the similarity score crosses a per-domain threshold, we skip the LLM entirely. This cuts both **Bedrock spend and p95 latency** on repeat queries. Threshold tuning per HR sub-domain was the hard part — too loose poisons answers, too tight defeats the cache.
+Query logs showed roughly **85% of questions clustered on the same set of knowledge articles**, asked in many different wordings and languages — a plain key cache would never hit. Incoming questions are embedded with the same **Cohere Multilingual v3** model used by the knowledge base and matched against **ElastiCache (Redis)** by cosine similarity; above **0.95** the answer is served straight from cache, skipping retrieval and the LLM entirely. Misses run the normal RAG path and write back with a **24h TTL**, matching the hourly ingestion cycle. Two rules make it safe: PII is masked before anything is cached, and the **cache key carries the user's permission scope**, so a cached answer can never cross a country or legal-entity boundary. The threshold was the hard part — too loose serves the answer to a *similar but different* question, too tight makes the cache useless.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="06"
-  title="Langfuse Evaluation Loop"
+  title="Observability & Evaluation Loop"
   image="/assets/case-studies/covestro/images/6-langfuse-evaluation.png"
-  alt="LLM-as-judge evaluation pipeline via Langfuse"
+  alt="Langfuse tracing plus a RAGAS evaluation pipeline scored by an independent judge model"
   highlight
 >
-Multi-agent failures are invisible to unit tests. The fix is **continuous LLM-as-judge evaluation** on Langfuse. Every production trace can be replayed and scored on factuality, helpfulness, and policy adherence by a judge model. Regressions on any sub-agent surface in dashboards before users notice — and we can pin a regression to a specific agent and prompt version, not to a vague "the bot got worse."
+Multi-agent failures are invisible to unit tests, so tracing and evaluation are two separate jobs here. **Langfuse** carries the traces — agent routing, model, tokens, latency — with user ids hashed reversibly and **content dropped in production**, because compliance forbids reading production conversations; debugging happens by replaying the same question in DEV plus non-PII breadcrumbs. **Evaluation** is its own pipeline: a **RAGAS** run scored by a judge model on **Bedrock** deliberately different from the chat model to avoid self-bias, plus a deterministic recall@k harness that checks whether retrieval returned the right article at all — no LLM opinion involved.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -104,8 +104,8 @@ Compliance is an architectural constraint, not a feature. PII is **redacted at t
 ## Outcome
 
 - Migrated production HR conversational workload for a **Fortune 500 client** with no downtime.
-- **Event-driven microservices** absorbed traffic spikes that broke the legacy monolith.
-- **Semantic caching** reduced Bedrock spend and tail latency on repeat HR queries.
-- **LLM-as-judge eval loop** runs continuously via Langfuse — factual regressions caught before deploy.
-- **Zero-trust + real-time PII redaction** meet enterprise compliance bars by construction, not policy.
+- **Established the first quality baseline** on a system nobody had measured, and turned it into an evidence-backed backlog.
+- **Semantic caching** answers repeat questions in ~150 ms with zero LLM tokens, inside the user's permission scope.
+- **Tracing and evaluation split cleanly**: Langfuse traces with content dropped in production, RAGAS plus a deterministic retrieval harness as the quality gate.
+- **Server-side permission filtering** (fail-closed, single choke point) shipped an HR-only knowledge base with no leakage window at any stage of rollout.
 - **Workday SSO** integrated cleanly for per-user context isolation across the agent layer.
