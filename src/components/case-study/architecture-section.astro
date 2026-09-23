@@ -109,6 +109,11 @@ const isReverse = !isNaN(stepNum) && stepNum % 2 === 0;
     color: var(--color-text-primary);
     font-size: 1rem;
     line-height: 1.65;
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphenate-limit-chars: 8 4 4;
   }
   .solution-label {
     display: inline-block;
@@ -127,6 +132,16 @@ const isReverse = !isNaN(stepNum) && stepNum % 2 === 0;
     line-height: 1.75;
     font-size: 1.05rem;
     margin-bottom: 1rem;
+    /* Justified body copy: both edges flush against the image column.
+       Hyphenation keeps word gaps tight so no rivers open up in the
+       narrow half-width column. */
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    /* Only hyphenate longer words, and never leave a 2-letter stub. */
+    hyphenate-limit-chars: 8 4 4;
+    overflow-wrap: break-word;
   }
 
   .arch-body :global(strong) {
@@ -165,6 +180,11 @@ const isReverse = !isNaN(stepNum) && stepNum % 2 === 0;
     .arch-visual-inner {
       position: static;
       top: auto;
+    }
+    /* Column is too narrow for justify — gaps get ugly, so go ragged-right. */
+    .arch-body :global(p),
+    .challenge-text {
+      text-align: left;
     }
   }
 </style>
