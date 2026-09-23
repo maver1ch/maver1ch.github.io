@@ -23,13 +23,13 @@ import PhaseMarker from '../../components/case-study/phase-marker.astro';
 
 ## Problem
 
-Covestro AG's HR assistant was live for employees across countries, but had spent almost a year in maintenance-only mode — nobody could say how well it worked.
+Covestro AG's HR assistant was live across countries, but had spent almost a year in maintenance-only mode with nothing measured.
 
-- **Improvements ran on guesswork** — the Product Owner had wishes but no numbers. **Cost metrics** never emitted, **dashboards** dead for a year, the **evaluation pipeline** broken. Quality had drifted down and nobody knew where.
-- **No production-like test environment** — DEV ran on a year-old **QA knowledge base**, so a change validated on DEV said nothing about PROD.
-- **Dangerous deploy path** — merging to `main` *was* the PROD deploy; CI ran no **unit tests** and no **`cdk diff`** against PROD; the **guardrail** ran a draft version and could not block output. Fixing CI, the diff-prod gate and the git workflow became part of the job.
-- **Monolith mixing reasoning with execution** — six **hard-coded agents** in one Lambda with retrieval, permissions and ServiceNow / Workday calls. LLM reasoning and must-be-correct writes shared one code path, and any prompt change meant a **redeploy**.
-- **No single point of enforcement** — the **permission filter** was monkey-patched into the retriever with a window before reranking, and HR-only content could not be published safely. The new platform needed filter and guardrail at one **fail-closed choke point**.
+- **Improvements ran on guesswork** — no numbers behind any of them: **cost metrics** never emitted, **dashboards** dead for a year, the **evaluation pipeline** broken.
+- **No production-like test environment** — DEV ran on a year-old **QA knowledge base**, so passing on DEV proved nothing about PROD.
+- **Dangerous deploy path** — merging to `main` shipped straight to production, with no **unit tests**, no **`cdk diff`** and a **guardrail** stuck on a draft version.
+- **Monolith mixing reasoning with execution** — six **hard-coded agents** sharing one Lambda with retrieval, permissions and ServiceNow / Workday calls; every prompt change meant a **redeploy**.
+- **No single point of enforcement** — the **permission filter** was monkey-patched into the retriever, and HR-only content could not be published safely.
 
 <PhaseMarker label="Architecture — Production" highlight />
 
