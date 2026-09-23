@@ -59,9 +59,9 @@ A full corpus scan — every article checked against the source, not a sample �
   title="Production-like DEV: Mirroring the Production Knowledge Base"
   image="/assets/case-studies/covestro/images/03-kb-mirror.png"
   alt="Cross-account mirror of the production knowledge base into DEV, with a runtime SSM switch between the mirror and the stale QA knowledge base"
-  challenge="DEV pulled its content from a separate QA instance — 815 articles against 995 in production, and the articles they shared were one to two years apart. Nothing validated on DEV said anything about production; the only way to know a change was safe was to ship it."
+  challenge="DEV read a separate QA knowledge base — 815 articles against 995 in production, some one to two years old. Passing on DEV proved nothing about production."
 >
-Rather than test harder, I removed the reason testing meant nothing: a **second knowledge base inside DEV that mirrors production content**. A fixed-name DEV role reads the production bucket with **`GetObject` and `ListBucket` only** — no write path back — and a mirror Lambda syncs **by ETag**, pruning what production no longer has, so re-running it simply reconciles to the source. The mirror uses the **same embedding and chunking** as production, and which knowledge base is live is an **SSM parameter read at runtime**. It is what made the move from Azure GPT-4o to **Bedrock Claude Sonnet 4.5** provable before it shipped.
+I built a **second knowledge base in DEV that mirrors production**. A DEV role reads the production bucket with **`GetObject` and `ListBucket` only**, and a mirror Lambda syncs **by ETag**, so re-runs simply reconcile. It uses the same **embedding and chunking** as production, and the live knowledge base is an **SSM parameter read at runtime**. This made the move to **Bedrock Claude Sonnet 4.5** provable before it shipped.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -70,9 +70,9 @@ Rather than test harder, I removed the reason testing meant nothing: a **second 
   image="/assets/case-studies/covestro/images/04-semantic-cache.png"
   alt="Semantic cache on ElastiCache: questions embedded with Cohere Multilingual v3, cosine match scoped by permission, hits served directly, misses run the RAG path and write back"
   highlight
-  challenge="HR questions repeat constantly, but phrased a hundred different ways. A plain key cache never hits — and in a system where article visibility depends on country and role, a shared cache is also a leak waiting to happen."
+  challenge="HR questions repeat constantly in a hundred wordings, so a key cache never hits — and with per-country visibility, a shared cache could leak."
 >
-Query logs showed roughly **85% of questions clustered on the same articles**, asked in many wordings and languages — a plain key cache would never hit. Questions are embedded with the same **Cohere Multilingual v3** model the knowledge base uses and matched in **ElastiCache** by cosine similarity; at **0.95 or above** the stored answer is served directly, skipping retrieval and the LLM. Misses run the normal RAG path and write back with a **24h TTL**. Two rules keep it safe: PII is masked before caching, and the **cache key carries the user's permission scope**. Repeat questions return in about **150 ms** with zero tokens.
+About **85% of questions hit the same articles**. Questions are embedded with **Cohere Multilingual v3** and matched in **ElastiCache** by cosine; at **0.95 or above** the stored answer is served, skipping retrieval and the LLM. Misses run normal RAG and write back with a **24h TTL**. PII is masked first, and the **cache key carries the user's permission scope**. Repeats return in **~150 ms** with zero tokens.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -81,9 +81,9 @@ Query logs showed roughly **85% of questions clustered on the same articles**, a
   image="/assets/case-studies/covestro/images/05-hr4hr-permissions.png"
   alt="Per-turn permission check with a single retriever choke point splitting HR and non-HR filters, plus the four-stage production rollout ordered around one invariant"
   highlight
-  challenge="134 internal HR articles had to live in the same index as ~1,000 public ones and be visible to HR only — with no moment, even mid-rollout, when a non-HR employee could see them."
+  challenge="134 internal HR articles had to share one index with ~1,000 public ones — visible to HR only, with no leakage window even mid-rollout."
 >
-Isolation here is **logical** — one index, an `access_level` tag per document — so leakage had to be impossible by construction. `is_hr` is computed **server-side on every turn** from the identity header, cached briefly and **fail-closed**; a client-sent flag is never trusted. The filter sits at a **single choke point** every agent inherits, with a test asserting nothing else touches the knowledge base. One invariant drove the rollout: the filter goes on **before** the first restricted document lands. Production shipped in **four gated stages**, and non-HR users saw **0 restricted references**.
+Each document carries an `access_level` tag. `is_hr` is computed **server-side on every turn**, cached briefly and **fail-closed**; client flags are never trusted. The filter sits at a **single choke point** every agent inherits. The rollout followed one invariant — filter **on before** the first restricted document lands — across **four gated stages**. Non-HR users saw **0 restricted references**.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 2 — Tailor 2.0: platform migration" highlight />
@@ -112,7 +112,7 @@ Identity is set by the engine, never by the model or the client: it travels in *
   image="/assets/case-studies/covestro/images/08-release-gates.png"
   alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
 >
-Two gates, deliberately separate, so quality and speed were never argued at once. **Parity first**: 30 questions with reference answers, same knowledge base, only the switch flipped, **scored by hand** — the new platform matched or beat the old one on **30 of 30**. That left latency as the only cutover gate. Joining client timings with engine logs on `conversation_id` showed the gap between "LLM finished" and "first byte" was under half a second in **every turn**: the engine buffered whole answers. Three fixes took first-content **P50 from 18.6 s to 6.3 s**, below the legacy 7.7 s.
+Quality and speed were gated separately. **Parity first**: 30 reference questions, only the switch flipped, **scored by hand** — the new platform matched or beat the old one on **30 of 30**. For latency, joining client timings with engine logs on `conversation_id` showed the engine **buffered whole answers**. Three fixes took first-content **P50 from 18.6 s to 6.3 s**, below the legacy 7.7 s.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -121,9 +121,9 @@ Two gates, deliberately separate, so quality and speed were never argued at once
   image="/assets/case-studies/covestro/images/09-cutover-ssm-switch.png"
   alt="The v1 chat Lambda as a dumb proxy: an SSM switch sends traffic to the SigV4-signed agent engine or, on any error, back to the monolith"
   highlight
-  challenge="Employees reach the assistant through a third-party chat platform that could not be reconfigured, and there was no downtime budget. Every change had to be reversible in under a minute by one person."
+  challenge="Users arrive through a third-party chat platform that could not be changed, with no downtime budget — every step had to be reversible in under a minute."
 >
-The monolith's chat Lambda became a **dumb proxy**: sign the byte-identical request, forward it to the engine, return the stream untouched. The switch is one **SSM parameter**, cached briefly, and **any error means off**. Per-request fallback was deliberately left out — it would run a turn twice and mask failures. Testing through the real UI caught what API tests missed: **CloudFront drops idle connections at 30 s** while hard questions need longer to reach first byte, fixed with a **15 s heartbeat**. Rollback was **one command, rehearsed at 34.8 s**, and every command was dry-run the day before.
+The monolith's chat Lambda became a **dumb proxy**: sign the byte-identical request, forward it to the engine, return the stream untouched. One **SSM parameter** is the switch, and **any error means off**. Testing through the real UI caught **CloudFront dropping idle connections at 30 s**, fixed with a **15 s heartbeat**. Rollback was **one command, rehearsed at 34.8 s**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -132,9 +132,9 @@ The monolith's chat Lambda became a **dumb proxy**: sign the byte-identical requ
   image="/assets/case-studies/covestro/images/10-data-plane-migration.png"
   alt="Knowledge base, OpenSearch collection, tables, buckets and the ingestion pipeline moved from the monolith CDK app to a new data repo by stack refactor and cdk import"
   highlight
-  challenge="The new platform served production, but the knowledge base, OpenSearch collection, tables and the hourly ingestion pipeline still belonged to the monolith's CDK app. Rebuilding meant re-ingesting ~1,000 articles, new ids, and config churn in every running service."
+  challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith. Rebuilding meant re-ingesting every article and new ids everywhere."
 >
-A short spike settled the approach: **move, don't rebuild**. A CDK aspect set `Retain` on all stateful resources, consumers were decoupled to read ids from config, and every window ran under written rules with abort criteria. The first window was **aborted** by those rules — refactor creation succeeded, execution refused. Sixteen probe refactors on a throwaway stack isolated a rule AWS does not document, and a "touch" step became standard. The next window moved **11 resources in 45 seconds**, with **zero id changes and no re-ingestion**.
+A spike settled it: **move, don't rebuild**. Stateful resources got `Retain`, consumers read ids from config, and every window had abort criteria. When the first window was **aborted**, **16 probe refactors** isolated an undocumented CloudFormation rule, and a "touch" step became standard. The next window moved **11 resources in 45 seconds** — **zero id changes, no re-ingestion**.
 </ArchitectureSection>
 
 ## Outcome
