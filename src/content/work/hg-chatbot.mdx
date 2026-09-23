@@ -77,4 +77,3 @@ Everything except external LLM calls lives on-prem. The **app layer** (Chatbot A
 - **On-premise deployment** met the compliance bar without sacrificing model quality — external LLM calls were the only off-prem dependency.
 - **Multi-LLM routing** (GPT + Gemini) gave the team a cost/quality dial per query type, and avoided single-vendor lock-in on the answering layer.
 - **Unified observability** via Langfuse + Prometheus + Grafana meant every step — embedding latency, retrieval recall, LLM cost, GPU utilization — was visible from one pane.
-- **Patterns that translated forward**: the hierarchical chunking, hybrid retrieval, and reranking patterns built here informed the production work I later did at FPT Software for Fortune 500 clients.
