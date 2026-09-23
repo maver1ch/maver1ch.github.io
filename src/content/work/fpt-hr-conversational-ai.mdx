@@ -27,7 +27,7 @@ Covestro AG's HR assistant was live for employees across countries, but had spen
 
 - **Improvements ran on guesswork** — the Product Owner had wishes but no numbers. **Cost metrics** never emitted, **dashboards** dead for a year, the **evaluation pipeline** broken. Quality had drifted down and nobody knew where.
 - **No production-like test environment** — DEV ran on a year-old **QA knowledge base**, so a change validated on DEV said nothing about PROD.
-- **Dangerous deploy path** — merging to `main` *was* the PROD deploy; CI ran no **unit tests** and no **`cdk diff`**; the **guardrail** ran a draft version and could not block output. Fixing CI, the diff-prod gate and the git workflow became part of the job.
+- **Dangerous deploy path** — merging to `main` *was* the PROD deploy; CI ran no **unit tests** and no **`cdk diff`** against PROD; the **guardrail** ran a draft version and could not block output. Fixing CI, the diff-prod gate and the git workflow became part of the job.
 - **Monolith mixing reasoning with execution** — six **hard-coded agents** in one Lambda with retrieval, permissions and ServiceNow / Workday calls. LLM reasoning and must-be-correct writes shared one code path, and any prompt change meant a **redeploy**.
 - **No single point of enforcement** — the **permission filter** was monkey-patched into the retriever with a window before reranking, and HR-only content could not be published safely. The new platform needed filter and guardrail at one **fail-closed choke point**.
 
