@@ -3,7 +3,7 @@ title: "Enterprise HR Conversational AI Platform"
 client: "Covestro AG (via FPT Software)"
 period: "Jan 2026 – Present"
 role: "AIops & Platform Engineer"
-tldr: "Took over a live HR assistant serving employees across countries, then led its migration from a legacy monolith to event-driven AWS microservices. Multi-agent orchestration with LangGraph, a semantic cache for repeat questions, Langfuse observability with PII dropped in production, RAGAS evaluation scored by an independent judge model, Workday SSO, and permission filtering enforced server-side."
+tldr: "Took over a production HR assistant for a Fortune 500 client — ~1,000 knowledge articles in 9 languages, a year in maintenance mode, nothing measured — as its only developer. Established the first quality baseline, rebuilt observability and evaluation under strict PII rules, shipped a permission-scoped semantic cache and an HR-only knowledge base with fail-closed filtering. Then owned the zero-downtime migration from the LangGraph monolith to a multi-service agent platform on AWS: agent-as-config engine, MCP services, cutover behind an SSM switch, and the stateful data plane moved with zero id changes."
 order: 1
 stack:
   - LangGraph
@@ -23,13 +23,13 @@ import PhaseMarker from '../../components/case-study/phase-marker.astro';
 
 ## Problem
 
-Covestro AG's HR assistant was already serving employees in production — but it had been in maintenance-only mode for about a year, and nobody was measuring it. Every layer was a liability.
+Covestro AG's HR assistant was already live for employees across countries — but it had spent almost a year in maintenance-only mode, and nobody could say how well it actually worked.
 
-- **Nothing was measured** — retrieval recall sat at 52.7% on the first baseline, token/cost metrics were defined but never emitted, and most dashboards were over a year stale.
-- **Data quality broke retrieval** — the HTML converter flattened every table in the knowledge base, so salary and benefit tables lost their rows and columns.
-- **PII compliance was an architectural constraint** — production traces and logs could not carry user content, which shaped the whole observability design.
-- **Permissions were coarse** — article visibility depended on country and legal entity, with no way to publish HR-only content safely.
-- **Downtime was not an option** — every change had to ship against live production traffic.
+- **Every improvement ran on guesswork** — the Product Owner had a list of things to make better, with no numbers behind any of them. Token and cost metrics were defined but never emitted, most dashboards had been dead for over a year, the evaluation pipeline was broken in both environments. Answer quality had drifted down over time and nobody could tell where.
+- **No production-like test environment** — DEV ran on a separate, year-old QA knowledge base, so anything validated on DEV said nothing about PROD. The only way to know a change was safe was to ship it.
+- **A dangerous deploy path with patched-on safety** — merging to `main` *was* the production deploy; CI ran only `tsc` and `cdk synth`, no unit tests, no `cdk diff` against PROD; the guardrail was running a draft version and could not block output. Getting tests into CI, adding a diff-prod gate and fixing the git workflow became part of the job.
+- **A monolith that mixed reasoning with execution** — six agents hard-coded into one Lambda next to retrieval, permissions, ticket creation and Workday calls. The LLM's error-prone reasoning and the must-be-correct writes (creating a ServiceNow case, reading HR data) shared one code path, and changing a prompt or a tool meant a redeploy.
+- **Permissions and guardrails had no single point of enforcement** — the country / legal-entity filter was monkey-patched into the retriever, leaving a window before reranking, and there was no safe way to publish HR-only content. Any new platform had to put the permission filter and the guardrail at one choke point that every agent inherits, fail-closed.
 
 <PhaseMarker label="Architecture — Production" highlight />
 
