@@ -5,6 +5,8 @@ export interface CaseStudyMeta {
   period: string;
   blurb: string;
   coverImage?: string;
+  /** true for illustrated covers: shown at full brightness, no tint or crop-in */
+  coverIllustration?: boolean;
   coverGradient: string;
   stack: string[];
   draft?: boolean;
@@ -19,6 +21,7 @@ export const caseStudies: CaseStudyMeta[] = [
     blurb:
       'Revived and then replaced a production HR assistant for a Fortune 500 chemicals corporation: measured baseline, semantic cache, HR-only knowledge base, then a zero-downtime move to an MCP-based agent platform on AWS.',
     coverImage: '/assets/case-studies/covestro/cover.jpg',
+    coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
     stack: ['LangGraph', 'MCP', 'AWS Bedrock', 'OpenSearch Serverless', 'AWS CDK', 'Langfuse'],
   },

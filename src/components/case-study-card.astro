@@ -22,7 +22,7 @@ const delayMs = index * 90;
     style={`--cover-bg: ${study.coverGradient};`}
     aria-label={`Read case study: ${study.title}`}
   >
-    <div class="cover-frame">
+    <div class:list={['cover-frame', { illustration: study.coverIllustration }]}>
       <div class="cover-bg"></div>
       {study.coverImage ? (
         <img src={study.coverImage} alt="" decoding="async" />
@@ -153,6 +153,12 @@ const delayMs = index * 90;
   .cover-wrap:hover .cover-frame img {
     transform: scale(1.24);
   }
+
+  /* Illustrated covers are the content itself: keep them bright and uncropped */
+  .cover-frame.illustration img { transform: none; }
+  .cover-wrap:hover .cover-frame.illustration img { transform: scale(1.04); }
+  .cover-frame.illustration .cover-tint,
+  .cover-frame.illustration .cover-grain { display: none; }
 
   /* Tint: diagonal cool tint so the diagram becomes branded texture, not content */
   .cover-tint {
