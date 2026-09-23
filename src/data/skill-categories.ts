@@ -8,18 +8,18 @@ export type SkillCategory = 'lang' | 'framework' | 'cloud' | 'db' | 'concept' | 
 
 const RULES: Array<[RegExp, SkillCategory]> = [
   // Languages
-  [/^(python|typescript|javascript|go|rust)$/i, 'lang'],
+  [/^(python|typescript|javascript|go|rust|grpc)$/i, 'lang'],
 
   // AI / ML frameworks
-  [/(pytorch|tensorflow|langchain|langgraph|llamaindex|langfuse|langsmith|huggingface|flux|vllm)/i, 'framework'],
+  [/(pytorch|tensorflow|langchain|langgraph|llamaindex|langfuse|langsmith|huggingface|flux|vllm|mcp|ragas|fastapi|olmocr)/i, 'framework'],
 
   // Cloud / Infra / DevOps
   [/^aws($| )/i, 'cloud'],
-  [/(lambda|bedrock|eventbridge|sqs|ecs fargate|fargate|cdk|s3|rds|elasticache|cloudfront|api gateway)/i, 'cloud'],
+  [/(lambda|bedrock|knowledge bases|guardrails|eventbridge|sqs|ecs fargate|fargate|cdk|cloudformation|s3|rds|elasticache|cloudfront|api gateway|opensearch serverless)/i, 'cloud'],
   [/(docker|kubernetes|k8s|ray|github actions|ci\/cd|terraform|helm)/i, 'cloud'],
 
   // Databases / Storage / Messaging
-  [/(qdrant|opensearch|postgresql|postgres|mongodb|mongo|redis|kafka|rabbitmq|elasticsearch|pinecone|weaviate|chroma)/i, 'db'],
+  [/(qdrant|opensearch|dynamodb|postgresql|postgres|mongodb|mongo|redis|neo4j|faiss|kafka|rabbitmq|elasticsearch|pinecone|weaviate|chroma)/i, 'db'],
 
   // Concepts / Patterns / Techniques
   [/(react pattern|multi-agent|llm-as-judge|semantic caching|pii redaction|sse streaming|prompt chaining|hybrid search|cross-encoder|hierarchical|rag|reranking|chunking|streaming|sse)/i, 'concept'],
