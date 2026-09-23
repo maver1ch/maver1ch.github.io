@@ -51,6 +51,43 @@
             <span class="callout-headline">Fortune 500 scale</span>
           </div>
         </div>
+
+        <ul class="cert-row" aria-label="AWS certifications">
+          <li>
+            <a
+              class="cert-chip"
+              href="https://www.credly.com/badges/7baa905d-a3a2-4959-971f-09b97ce94feb/public_url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg class="cert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2l8 3.5v5.5c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5.5z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span class="cert-text">
+                <span class="cert-name">AWS Certified GenAI Developer</span>
+                <span class="cert-level">Professional &middot; AIP-C01</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a
+              class="cert-chip"
+              href="https://www.credly.com/badges/4aa6aed5-0d54-4a35-9bc3-b3ccb191f0a6/public_url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg class="cert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2l8 3.5v5.5c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5.5z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <span class="cert-text">
+                <span class="cert-name">AWS Certified Solutions Architect</span>
+                <span class="cert-level">Associate &middot; SAA-C03</span>
+              </span>
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -254,6 +291,56 @@
     align-self: flex-start;
     transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
   }
+  /* Certification chips — verifiable credentials next to the Fortune 500 signal */
+  .cert-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .cert-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    text-decoration: none;
+    color: inherit;
+    transition: transform var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  }
+  .cert-chip:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 153, 0, 0.45);
+    box-shadow: var(--shadow-sm);
+  }
+  .cert-icon {
+    color: #ff9900;
+    flex-shrink: 0;
+  }
+  .cert-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+  .cert-name {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--color-text-primary);
+    letter-spacing: -0.01em;
+  }
+  .cert-level {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.01em;
+  }
+
   .fortune-callout:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
@@ -299,6 +386,7 @@
       align-items: center;
     }
     .fortune-callout { align-self: center; }
+    .cert-row { justify-content: center; }
   }
 
   @media (max-width: 720px) {
