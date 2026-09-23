@@ -18,7 +18,7 @@ export const caseStudies: CaseStudyMeta[] = [
     period: 'Jan 2026 – Present',
     blurb:
       'Revived and then replaced a production HR assistant for a Fortune 500 chemicals corporation: measured baseline, semantic cache, HR-only knowledge base, then a zero-downtime move to an MCP-based agent platform on AWS.',
-    coverImage: '/assets/case-studies/covestro/images/06-tailor-2-platform.png',
+    coverImage: '/assets/case-studies/covestro/cover.jpg',
     coverGradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
     stack: ['LangGraph', 'MCP', 'AWS Bedrock', 'OpenSearch Serverless', 'AWS CDK', 'Langfuse'],
   },
