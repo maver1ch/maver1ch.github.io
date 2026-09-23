@@ -29,7 +29,7 @@ export const caseStudies: CaseStudyMeta[] = [
     slug: 'fpt-contract-intelligence',
     title: 'AI Contract Intelligence System',
     client: 'FPT Software',
-    period: 'Feb 2026 – Present',
+    period: 'Feb 2026 – Jun 2026',
     blurb:
       'Skill-based framework with prompt chaining + Qdrant vector RAG. AWS Bedrock as multi-model LLM gateway. Async batch jobs on SQS scale to thousands of contracts per run.',
     coverImage: '/assets/case-studies/fpt-contract/cover.jpg',
