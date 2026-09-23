@@ -7,19 +7,22 @@ tldr: "Took over a production HR assistant for a Fortune 500 client — ~1,000 a
 order: 1
 stack:
   - LangGraph
+  - MCP
   - AWS Bedrock
-  - EventBridge
-  - SQS
-  - OpenSearch
+  - OpenSearch Serverless
   - ElastiCache
-  - Langfuse
   - Lambda
-  - Workday SSO
-  - PII Redaction
+  - DynamoDB
+  - SQS
+  - AWS CDK
+  - CloudFormation
+  - Langfuse
+  - RAGAS
 ---
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
 import PhaseMarker from '../../components/case-study/phase-marker.astro';
+import OutcomeMetrics from '../../components/case-study/outcome-metrics.astro';
 
 ## Problem
 
@@ -31,81 +34,126 @@ Covestro AG's HR assistant was live across countries, but had spent almost a yea
 - **Monolith mixing reasoning with execution** — six **hard-coded agents** sharing one Lambda with retrieval, permissions and ServiceNow / Workday calls; every prompt change meant a **redeploy**.
 - **No single point of enforcement** — the **permission filter** was monkey-patched into the retriever, and HR-only content could not be published safely.
 
-<PhaseMarker label="Architecture — Production" highlight />
+<PhaseMarker label="Phase 1 — Reviving Tailor v1" />
 
 <ArchitectureSection
   step="01"
-  title="General Architecture"
-  image="/assets/case-studies/covestro/images/1-general-architecture.png"
-  alt="General system architecture for Covestro AG HR Conversational AI"
+  title="Take-over Audit: Measure Before Touching Code"
+  image="/assets/case-studies/covestro/images/01-takeover-audit.png"
+  alt="The inherited Tailor v1 architecture with measured findings pinned to the knowledge base, the LLM, the guardrail, CloudWatch and CI/CD"
 >
-A bird's-eye view of the full platform. The frontend talks to an API gateway, which fans into the **LangGraph multi-agent core**. The agent layer reads and writes through a data plane built on **OpenSearch** (semantic + lexical retrieval), **RDS** (structured HR records), **S3** (document store), and **ElastiCache** (semantic cache). **AWS Bedrock** is the single LLM gateway — one integration, multiple model providers.
+I worked in three phases: read the system offline, then use the one window of cloud access to **measure, not fix**, then turn the numbers into a **12-item backlog** with evidence on every line. Two scores set the direction — **recall@5 52.7%** for retrieval, **faithfulness 74.5%** for generation — so the lever was what the model sees, not the model itself. Token metrics were defined but **never emitted**, and three of four dashboards were dead.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="02"
-  title="Regular Chat Flow"
-  image="/assets/case-studies/covestro/images/2-regular-chatflow.png"
-  alt="A normal user chat turn through the LangGraph state machine"
+  title="Ingestion Pipeline: Chunking & Table Fidelity"
+  image="/assets/case-studies/covestro/images/02-knowledge-ingestion.png"
+  alt="Hourly ServiceNow ingestion pipeline on AWS: EventBridge, Lambda, SQS with DLQ, DynamoDB, an attachment conversion branch, S3, a chunking Lambda, Bedrock Knowledge Base and OpenSearch"
 >
-The happy path for a single user turn. A request enters the router agent, which classifies the intent and **selects the right sub-agent** (policy, leave, payroll, benefits). The selected agent retrieves grounded context, reasons over it, and emits a response checked against guardrails before it ever reaches the user. The full state machine is **LangGraph-native** so every transition is traceable.
+A full corpus scan — every article checked against the source, not a sample — found two faults in the same layer. The HTML→Markdown converter flattened tables to one cell per line, so salary and benefit grids lost the rows and columns that gave the numbers meaning. And chunking was **fixed-size**, cutting straight through those tables. I rebuilt the converter so **real Markdown tables survive**, then moved ingestion to **hierarchical chunking** — parent chunks for context, child chunks for precision — with **table-aware boundaries**: a split landing inside a table extends to take the whole table instead of severing it.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="03"
-  title="Data Ingestion Pipeline"
-  image="/assets/case-studies/covestro/images/3-data-ingestion.png"
-  alt="Event-driven HR document ingestion pipeline on AWS"
+  title="Production-like DEV: Mirroring the Production Knowledge Base"
+  image="/assets/case-studies/covestro/images/03-kb-mirror.png"
+  alt="Cross-account mirror of the production knowledge base into DEV, with a runtime SSM switch between the mirror and the stale QA knowledge base"
+  challenge="DEV pulled its content from a separate QA instance — 815 articles against 995 in production, and the articles they shared were one to two years apart. Nothing validated on DEV said anything about production; the only way to know a change was safe was to ship it."
 >
-HR documents from Workday and the knowledge base land in **S3**, which fires events into **Lambda** chunkers via **SQS**. Chunks are embedded and written to **OpenSearch** alongside their metadata. The pipeline is fully asynchronous and retries on failure — bursty ingest from policy updates no longer blocks the live serving path.
+Rather than test harder, I removed the reason testing meant nothing: a **second knowledge base inside DEV that mirrors production content**. A fixed-name DEV role reads the production bucket with **`GetObject` and `ListBucket` only** — no write path back — and a mirror Lambda syncs **by ETag**, pruning what production no longer has, so re-running it simply reconciles to the source. The mirror uses the **same embedding and chunking** as production, and which knowledge base is live is an **SSM parameter read at runtime**. It is what made the move from Azure GPT-4o to **Bedrock Claude Sonnet 4.5** provable before it shipped.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="04"
-  title="Workday SSO Auth Flow"
-  image="/assets/case-studies/covestro/images/4-workday-auth-flow.png"
-  alt="Enterprise SSO via Workday for per-user context isolation"
+  title="Semantic Caching Layer"
+  image="/assets/case-studies/covestro/images/04-semantic-cache.png"
+  alt="Semantic cache on ElastiCache: questions embedded with Cohere Multilingual v3, cosine match scoped by permission, hits served directly, misses run the RAG path and write back"
+  highlight
+  challenge="HR questions repeat constantly, but phrased a hundred different ways. A plain key cache never hits — and in a system where article visibility depends on country and role, a shared cache is also a leak waiting to happen."
 >
-Enterprise SSO is non-negotiable at Fortune 500 scale. The platform federates with **Workday** for identity, exchanges tokens at the gateway, and carries a per-user context through every downstream agent call. This isolates HR data per employee and makes audit trails clean.
+Query logs showed roughly **85% of questions clustered on the same articles**, asked in many wordings and languages — a plain key cache would never hit. Questions are embedded with the same **Cohere Multilingual v3** model the knowledge base uses and matched in **ElastiCache** by cosine similarity; at **0.95 or above** the stored answer is served directly, skipping retrieval and the LLM. Misses run the normal RAG path and write back with a **24h TTL**. Two rules keep it safe: PII is masked before caching, and the **cache key carries the user's permission scope**. Repeat questions return in about **150 ms** with zero tokens.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="05"
-  title="Semantic Caching Layer"
-  image="/assets/case-studies/covestro/images/5-semantic-cache.png"
-  alt="ElastiCache + embedding similarity for semantic response caching"
+  title="HR4HR: Restricted Knowledge Base, No Leakage Window"
+  image="/assets/case-studies/covestro/images/05-hr4hr-permissions.png"
+  alt="Per-turn permission check with a single retriever choke point splitting HR and non-HR filters, plus the four-stage production rollout ordered around one invariant"
   highlight
-  challenge="HR questions repeat constantly, but phrased a hundred different ways. A plain key cache never hits — and in a system where article visibility depends on country and role, a shared cache is also a leak waiting to happen."
+  challenge="134 internal HR articles had to live in the same index as ~1,000 public ones and be visible to HR only — with no moment, even mid-rollout, when a non-HR employee could see them."
 >
-Query logs showed roughly **85% of questions clustered on the same set of knowledge articles**, asked in many different wordings and languages — a plain key cache would never hit. Incoming questions are embedded with the same **Cohere Multilingual v3** model used by the knowledge base and matched against **ElastiCache (Redis)** by cosine similarity; above **0.95** the answer is served straight from cache, skipping retrieval and the LLM entirely. Misses run the normal RAG path and write back with a **24h TTL**, matching the hourly ingestion cycle. Two rules make it safe: PII is masked before anything is cached, and the **cache key carries the user's permission scope**, so a cached answer can never cross a country or legal-entity boundary. The threshold was the hard part — too loose serves the answer to a *similar but different* question, too tight makes the cache useless.
+Isolation here is **logical** — one index, an `access_level` tag per document — so leakage had to be impossible by construction. `is_hr` is computed **server-side on every turn** from the identity header, cached briefly and **fail-closed**; a client-sent flag is never trusted. The filter sits at a **single choke point** every agent inherits, with a test asserting nothing else touches the knowledge base. One invariant drove the rollout: the filter goes on **before** the first restricted document lands. Production shipped in **four gated stages**, and non-HR users saw **0 restricted references**.
 </ArchitectureSection>
+
+<PhaseMarker label="Phase 2 — Tailor 2.0: platform migration" highlight />
 
 <ArchitectureSection
   step="06"
-  title="Observability & Evaluation Loop"
-  image="/assets/case-studies/covestro/images/6-langfuse-evaluation.png"
-  alt="Langfuse tracing plus a RAGAS evaluation pipeline scored by an independent judge model"
-  highlight
+  title="Tailor 2.0 Platform: Engine + MCP Services"
+  image="/assets/case-studies/covestro/images/06-tailor-2-platform.png"
+  alt="Tailor 2.0 on AWS: a stateless agent engine on Lambda with agent config in DynamoDB, three MCP services invoked as Lambdas, a tool-audit table and the tailor-core data plane"
 >
-Multi-agent failures are invisible to unit tests, so tracing and evaluation are two separate jobs here. **Langfuse** carries the traces — agent routing, model, tokens, latency — with user ids hashed reversibly and **content dropped in production**, because compliance forbids reading production conversations; debugging happens by replaying the same question in DEV plus non-PII breadcrumbs. **Evaluation** is its own pipeline: a **RAGAS** run scored by a judge model on **Bedrock** deliberately different from the chat model to avoid self-bias, plus a deterministic recall@k harness that checks whether retrieval returned the right article at all — no LLM opinion involved.
+**Prompts and tools are data, not code** — that is the biggest difference between v1 and 2.0. A **stateless engine** — LangGraph ReAct behind a streaming Function URL, history arriving with every request — owns the conversation loop, guardrails on input and output, and identity; it never calls a business API. Three **MCP services** for knowledge, ServiceNow and Workday expose typed tools through the MCP SDK and are invoked as Lambdas with a JSON-RPC payload; each resolves permissions server-side and writes an audit row. Agents live in **DynamoDB** — one active revision, a tool allowlist resolved through a **three-layer registry** — so a new source is a new service plus one config item.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="07"
-  title="PII Zero-Trust"
-  image="/assets/case-studies/covestro/images/7-pii-zero-trust.png"
-  alt="Real-time PII redaction and zero-trust between microservices"
-  highlight
-  challenge="At Fortune 500 scale, PII leaking into logs, caches, or a stray LLM call is a compliance incident, not a bug. The system needed PII boundaries that hold by construction, not by policy."
+  title="Identity & Permission by Construction"
+  image="/assets/case-studies/covestro/images/07-identity-permission-contract.png"
+  alt="One knowledge tool call: identity headers set by the engine, active KB lookup, fail-closed HR check, hybrid retrieve, banned entities dropped before rerank, then an audit row"
 >
-Compliance is an architectural constraint, not a feature. PII is **redacted at the boundary** — before logs, before the semantic cache, before any Bedrock call. Between microservices, every hop authenticates and authorizes from scratch (**zero-trust**). The latency cost is real but bounded; the upside is eliminating entire classes of compliance incidents.
+Identity is set by the engine, never by the model or the client: it travels in **five headers**, and tools **accept no user id or scope at all**. Dropping LangChain for direct **boto3 Retrieve + Rerank** turned permission order into a guarantee rather than a patch: banned legal entities are dropped **before** reranking, so a restricted document can never win a slot. IAM allows `Retrieve` on an **explicit list of knowledge bases**, so the runtime KB switch can never widen read access, and the guardrail is owned by the engine itself.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="08"
+  title="Release Gates: Quality Parity & Latency"
+  image="/assets/case-studies/covestro/images/08-release-gates.png"
+  alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
+>
+Two gates, deliberately separate, so quality and speed were never argued at once. **Parity first**: 30 questions with reference answers, same knowledge base, only the switch flipped, **scored by hand** — the new platform matched or beat the old one on **30 of 30**. That left latency as the only cutover gate. Joining client timings with engine logs on `conversation_id` showed the gap between "LLM finished" and "first byte" was under half a second in **every turn**: the engine buffered whole answers. Three fixes took first-content **P50 from 18.6 s to 6.3 s**, below the legacy 7.7 s.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="09"
+  title="Zero-Downtime Cutover Behind an SSM Switch"
+  image="/assets/case-studies/covestro/images/09-cutover-ssm-switch.png"
+  alt="The v1 chat Lambda as a dumb proxy: an SSM switch sends traffic to the SigV4-signed agent engine or, on any error, back to the monolith"
+  highlight
+  challenge="Employees reach the assistant through a third-party chat platform that could not be reconfigured, and there was no downtime budget. Every change had to be reversible in under a minute by one person."
+>
+The monolith's chat Lambda became a **dumb proxy**: sign the byte-identical request, forward it to the engine, return the stream untouched. The switch is one **SSM parameter**, cached briefly, and **any error means off**. Per-request fallback was deliberately left out — it would run a turn twice and mask failures. Testing through the real UI caught what API tests missed: **CloudFront drops idle connections at 30 s** while hard questions need longer to reach first byte, fixed with a **15 s heartbeat**. Rollback was **one command, rehearsed at 34.8 s**, and every command was dry-run the day before.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="10"
+  title="Data-Plane Ownership Transfer, Zero ID Changes"
+  image="/assets/case-studies/covestro/images/10-data-plane-migration.png"
+  alt="Knowledge base, OpenSearch collection, tables, buckets and the ingestion pipeline moved from the monolith CDK app to a new data repo by stack refactor and cdk import"
+  highlight
+  challenge="The new platform served production, but the knowledge base, OpenSearch collection, tables and the hourly ingestion pipeline still belonged to the monolith's CDK app. Rebuilding meant re-ingesting ~1,000 articles, new ids, and config churn in every running service."
+>
+A short spike settled the approach: **move, don't rebuild**. A CDK aspect set `Retain` on all stateful resources, consumers were decoupled to read ids from config, and every window ran under written rules with abort criteria. The first window was **aborted** by those rules — refactor creation succeeded, execution refused. Sixteen probe refactors on a throwaway stack isolated a rule AWS does not document, and a "touch" step became standard. The next window moved **11 resources in 45 seconds**, with **zero id changes and no re-ingestion**.
 </ArchitectureSection>
 
 ## Outcome
 
-- Migrated production HR conversational workload for a **Fortune 500 client** with no downtime.
-- **Established the first quality baseline** on a system nobody had measured, and turned it into an evidence-backed backlog.
-- **Semantic caching** answers repeat questions in ~150 ms with zero LLM tokens, inside the user's permission scope.
-- **Tracing and evaluation split cleanly**: Langfuse traces with content dropped in production, RAGAS plus a deterministic retrieval harness as the quality gate.
-- **Server-side permission filtering** (fail-closed, single choke point) shipped an HR-only knowledge base with no leakage window at any stage of rollout.
-- **Workday SSO** integrated cleanly for per-user context isolation across the agent layer.
+<OutcomeMetrics
+  metrics={[
+    { value: '19', label: 'production releases in Phase 1' },
+    { value: '~150 ms', label: 'semantic-cache hit, 0 tokens' },
+    { value: '0', label: 'restricted references leaked to non-HR' },
+    { value: '30 / 30', label: 'quality parity before cutover' },
+    { value: '6.3 s', label: 'first-content P50, down from 18.6 s (legacy 7.7 s)' },
+    { value: '34.8 s', label: 'rehearsed rollback' },
+    { value: '0', label: 'resource ids changed in the data-plane move' },
+    { value: '11', label: 'stateful resources moved in one 45 s refactor' },
+  ]}
+/>
+
+- **From guesswork to measurement** — a production assistant nobody could observe became one with a baseline, tracing, and a backlog chosen by numbers; **19 production releases** as sole developer.
+- **Repeat questions in ~150 ms** from a semantic cache that stays inside the user's permission scope.
+- **HR-only knowledge base with zero leakage** — fail-closed filter at a single choke point, rolled out in an order that never opened a window.
+- **Zero-downtime migration** to a multi-service agent platform — parity 30/30 and latency 18.6 → 6.3 s proven first, cutover behind an SSM switch with a rehearsed rollback.
+- **Stateful data plane moved between CDK apps with zero id changes** and no re-ingestion, plus an undocumented CloudFormation constraint turned into a reusable procedure.

@@ -17,10 +17,10 @@ export const caseStudies: CaseStudyMeta[] = [
     client: 'Covestro AG (via FPT Software)',
     period: 'Jan 2026 – Present',
     blurb:
-      'Migrated legacy HR conversational AI for a Fortune 500 chemicals corporation. Event-driven microservices on AWS, semantic caching, LLM-as-judge eval, zero-trust + PII redaction.',
-    coverImage: '/assets/case-studies/covestro/images/1-general-architecture.png',
+      'Revived and then replaced a production HR assistant for a Fortune 500 chemicals corporation: measured baseline, semantic cache, HR-only knowledge base, then a zero-downtime move to an MCP-based agent platform on AWS.',
+    coverImage: '/assets/case-studies/covestro/images/06-tailor-2-platform.png',
     coverGradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
-    stack: ['LangGraph', 'AWS Bedrock', 'EventBridge', 'SQS', 'OpenSearch', 'Langfuse', 'Lambda'],
+    stack: ['LangGraph', 'MCP', 'AWS Bedrock', 'OpenSearch Serverless', 'AWS CDK', 'Langfuse'],
   },
   {
     slug: 'fpt-contract-intelligence',
