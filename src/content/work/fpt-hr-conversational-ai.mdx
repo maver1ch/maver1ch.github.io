@@ -47,17 +47,28 @@ I worked in three phases: read the system offline, then use the one window of cl
 
 <ArchitectureSection
   step="02"
+  title="LLM Observability: Tracing, Cost & Quality"
+  image="/assets/case-studies/covestro/images/02-llm-observability.png"
+  alt="One chat turn traced step by step in Langfuse, with personal data masked at the source; traces power token usage, cost tracking, per-step latency, debugging, a golden-dataset baseline and prompt versioning"
+  highlight
+  challenge="Cost metrics were never emitted and CloudWatch showed nothing inside an answer, so nobody could say why an answer was wrong, how long each step took, or what a model change would cost."
+>
+Observability came first, because every later fix needed a way to measure its effect. I integrated **Langfuse** so every turn became one trace — each LLM call, retrieval and tool call as a span, with **token usage, cost and latency per step**. Model **cost comparison** became a query, not a guess; a bad answer became a trace to **debug** step by step; every change had a **golden dataset** of ~200 HR questions as its baseline, with **prompts versioned** alongside. Because HR questions carry **personal data**, it was masked before leaving the app, and production kept **metadata only**.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="03"
   title="Ingestion Pipeline: Chunking & Table Fidelity"
-  image="/assets/case-studies/covestro/images/02-knowledge-ingestion.png"
+  image="/assets/case-studies/covestro/images/03-knowledge-ingestion.png"
   alt="Hourly ServiceNow ingestion pipeline on AWS: EventBridge, Lambda, SQS with DLQ, DynamoDB, an attachment conversion branch, S3, a chunking Lambda, Bedrock Knowledge Base and OpenSearch"
 >
 A full corpus scan — every article checked against the source, not a sample — found two faults in the same layer. The HTML→Markdown converter flattened tables to one cell per line, so salary and benefit grids lost the rows and columns that gave the numbers meaning. And chunking was **fixed-size**, cutting straight through those tables. I rebuilt the converter so **real Markdown tables survive**, then moved ingestion to **hierarchical chunking** — parent chunks for context, child chunks for precision — with **table-aware boundaries**: a split landing inside a table extends to take the whole table instead of severing it.
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="03"
+  step="04"
   title="Production-like DEV: Mirroring the Production Knowledge Base"
-  image="/assets/case-studies/covestro/images/03-kb-mirror.png"
+  image="/assets/case-studies/covestro/images/04-kb-mirror.png"
   alt="Cross-account mirror of the production knowledge base into DEV, with a runtime SSM switch between the mirror and the stale QA knowledge base"
   challenge="DEV read a separate QA knowledge base — 815 articles against 995 in production, some one to two years old. Passing on DEV proved nothing about production."
 >
@@ -65,9 +76,9 @@ I built a **second knowledge base in DEV that mirrors production**. A DEV role r
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="04"
+  step="05"
   title="Semantic Caching Layer"
-  image="/assets/case-studies/covestro/images/04-semantic-cache.png"
+  image="/assets/case-studies/covestro/images/05-semantic-cache.png"
   alt="Semantic cache on ElastiCache: questions embedded with Cohere Multilingual v3, cosine match scoped by permission, hits served directly, misses run the RAG path and write back"
   highlight
   challenge="HR questions repeat constantly in a hundred wordings, so a key cache never hits — and with per-country visibility, a shared cache could leak."
@@ -76,9 +87,9 @@ About **85% of questions hit the same articles**. Questions are embedded with **
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="05"
+  step="06"
   title="HR4HR: Restricted Knowledge Base, No Leakage Window"
-  image="/assets/case-studies/covestro/images/05-hr4hr-permissions.png"
+  image="/assets/case-studies/covestro/images/06-hr4hr-permissions.png"
   alt="Per-turn permission check with a single retriever choke point splitting HR and non-HR filters, plus the four-stage production rollout ordered around one invariant"
   highlight
   challenge="134 internal HR articles had to share one index with ~1,000 public ones — visible to HR only, with no leakage window even mid-rollout."
@@ -89,36 +100,36 @@ Each document carries an `access_level` tag. `is_hr` is computed **server-side o
 <PhaseMarker label="Phase 2 — Tailor 2.0: platform migration" highlight />
 
 <ArchitectureSection
-  step="06"
+  step="07"
   title="Tailor 2.0 Platform: Engine + MCP Services"
-  image="/assets/case-studies/covestro/images/06-tailor-2-platform.png"
+  image="/assets/case-studies/covestro/images/07-tailor-2-platform.png"
   alt="Tailor 2.0 on AWS: a stateless agent engine on Lambda with agent config in DynamoDB, three MCP services invoked as Lambdas, a tool-audit table and the tailor-core data plane"
 >
 **Prompts and tools are data, not code** — that is the biggest difference between v1 and 2.0. A **stateless engine** — LangGraph ReAct behind a streaming Function URL, history arriving with every request — owns the conversation loop, guardrails on input and output, and identity; it never calls a business API. Three **MCP services** for knowledge, ServiceNow and Workday expose typed tools through the MCP SDK and are invoked as Lambdas with a JSON-RPC payload; each resolves permissions server-side and writes an audit row. Agents live in **DynamoDB** — one active revision, a tool allowlist resolved through a **three-layer registry** — so a new source is a new service plus one config item.
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="07"
+  step="08"
   title="Identity & Permission by Construction"
-  image="/assets/case-studies/covestro/images/07-identity-permission-contract.png"
+  image="/assets/case-studies/covestro/images/08-identity-permission-contract.png"
   alt="One knowledge tool call: identity headers set by the engine, active KB lookup, fail-closed HR check, hybrid retrieve, banned entities dropped before rerank, then an audit row"
 >
 Identity is set by the engine, never by the model or the client: it travels in **five headers**, and tools **accept no user id or scope at all**. Dropping LangChain for direct **boto3 Retrieve + Rerank** turned permission order into a guarantee rather than a patch: banned legal entities are dropped **before** reranking, so a restricted document can never win a slot. IAM allows `Retrieve` on an **explicit list of knowledge bases**, so the runtime KB switch can never widen read access, and the guardrail is owned by the engine itself.
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="08"
+  step="09"
   title="Release Gates: Quality Parity & Latency"
-  image="/assets/case-studies/covestro/images/08-release-gates.png"
+  image="/assets/case-studies/covestro/images/09-release-gates.png"
   alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
 >
 Quality and speed were gated separately. **Parity first**: 30 reference questions, only the switch flipped, **scored by hand** — the new platform matched or beat the old one on **30 of 30**. For latency, joining client timings with engine logs on `conversation_id` showed the engine **buffered whole answers**. Three fixes took first-content **P50 from 18.6 s to 6.3 s**, below the legacy 7.7 s.
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="09"
+  step="10"
   title="Zero-Downtime Cutover Behind an SSM Switch"
-  image="/assets/case-studies/covestro/images/09-cutover-ssm-switch.png"
+  image="/assets/case-studies/covestro/images/10-cutover-ssm-switch.png"
   alt="The v1 chat Lambda as a dumb proxy: an SSM switch sends traffic to the SigV4-signed agent engine or, on any error, back to the monolith"
   highlight
   challenge="Users arrive through a third-party chat platform that could not be changed, with no downtime budget — every step had to be reversible in under a minute."
@@ -127,9 +138,9 @@ The monolith's chat Lambda became a **dumb proxy**: sign the byte-identical requ
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="10"
+  step="11"
   title="Data-Plane Ownership Transfer, Zero ID Changes"
-  image="/assets/case-studies/covestro/images/10-data-plane-migration.png"
+  image="/assets/case-studies/covestro/images/11-data-plane-migration.png"
   alt="Knowledge base, OpenSearch collection, tables, buckets and the ingestion pipeline moved from the monolith CDK app to a new data repo by stack refactor and cdk import"
   highlight
   challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith. Rebuilding meant re-ingesting every article and new ids everywhere."
