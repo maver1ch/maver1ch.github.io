@@ -114,7 +114,7 @@ Each document carries an `access_level` tag. `is_hr` is computed **server-side o
   image="/assets/case-studies/covestro/images/08-release-gates.png"
   alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
 >
-Quality and speed were gated separately. **Parity first**: 30 reference questions, only the switch flipped, **scored by hand** — the new platform matched or beat the old one on **30 of 30**. For latency, joining client timings with engine logs on `conversation_id` showed the engine **buffered whole answers**. Three fixes took first-content **P50 from 18.6 s to 6.3 s**, below the legacy 7.7 s.
+Quality and speed were gated separately. **Parity first**: 90 reference questions covering every case type and the edge cases, only the switch flipped, scored by an **LLM judge** whose scores the HR team then reviewed — the new platform matched or beat the old one on **90 of 90**. For latency, joining client timings with engine logs on `conversation_id` exposed **fake streaming**: nothing was sent until the whole answer was ready. Three fixes took **time to first token (P50) from 18.6 s to 6.3 s**, below the legacy 7.7 s.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -146,7 +146,7 @@ A spike settled it: **move, don't rebuild**. Stateful resources got `Retain`, co
     { value: '19', label: 'production releases in Phase 1' },
     { value: '~150 ms', label: 'semantic-cache hit, 0 tokens' },
     { value: '0', label: 'restricted references leaked to non-HR' },
-    { value: '30 / 30', label: 'quality parity before cutover' },
+    { value: '90 / 90', label: 'quality parity before cutover' },
     { value: '6.3 s', label: 'first-content P50, down from 18.6 s (legacy 7.7 s)' },
     { value: '34.8 s', label: 'rehearsed rollback' },
     { value: '0', label: 'resource ids changed in the data-plane move' },
@@ -157,5 +157,5 @@ A spike settled it: **move, don't rebuild**. Stateful resources got `Retain`, co
 - **From guesswork to measurement** — a production assistant nobody could observe became one with a baseline, tracing, and a backlog chosen by numbers; **19 production releases** as sole developer.
 - **Repeat questions in ~150 ms** from a semantic cache that stays inside the user's permission scope.
 - **HR-only knowledge base with zero leakage** — fail-closed filter at a single choke point, rolled out in an order that never opened a window.
-- **Zero-downtime migration** to a multi-service agent platform — parity 30/30 and latency 18.6 → 6.3 s proven first, cutover behind an SSM switch with a rehearsed rollback.
+- **Zero-downtime migration** to a multi-service agent platform — parity 90/90 and latency 18.6 → 6.3 s proven first, cutover behind an SSM switch with a rehearsed rollback.
 - **Stateful data plane moved between CDK apps with zero id changes** and no re-ingestion, plus an undocumented CloudFormation constraint turned into a reusable procedure.
