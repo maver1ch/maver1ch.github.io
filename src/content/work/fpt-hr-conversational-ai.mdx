@@ -90,7 +90,7 @@ About **85% of questions hit the same articles**. Questions are embedded with **
   step="06"
   title="HR4HR: Restricted Knowledge Base, No Leakage Window"
   image="/assets/case-studies/covestro/images/06-hr4hr-permissions.png"
-  alt="Per-turn permission check with a single retriever choke point splitting HR and non-HR filters, plus the four-stage production rollout ordered around one invariant"
+  alt="HR4HR: every document labelled at import, a server-side HR check each turn, one filter at a single choke point, and two switches with a five-step rollout that turns the filter on before the HR content"
   highlight
   challenge="134 internal HR articles had to share one index with ~1,000 public ones — visible to HR only, with no leakage window even mid-rollout."
 >
@@ -114,7 +114,7 @@ Each document carries an `access_level` tag. `is_hr` is computed **server-side o
   image="/assets/case-studies/covestro/images/08-identity-permission-contract.png"
   alt="One knowledge tool call: identity headers set by the engine, active KB lookup, fail-closed HR check, hybrid retrieve, banned entities dropped before rerank, then an audit row"
 >
-Identity is set by the engine, never by the model or the client: it travels in **five headers**, and tools **accept no user id or scope at all**. Dropping LangChain for direct **boto3 Retrieve + Rerank** turned permission order into a guarantee rather than a patch: banned legal entities are dropped **before** reranking, so a restricted document can never win a slot. IAM allows `Retrieve` on an **explicit list of knowledge bases**, so the runtime KB switch can never widen read access, and the guardrail is owned by the engine itself.
+Identity is set by the engine from the platform profile, never by the model: it travels in **five headers**, and tools **accept no user id or scope at all**. Dropping LangChain for direct **boto3 Retrieve + Rerank** turned permission order into a guarantee rather than a patch: banned legal entities are dropped **before** reranking, so a restricted document can never win a slot. IAM allows `Retrieve` on an **explicit list of knowledge bases**, so the runtime KB switch can never widen read access.
 </ArchitectureSection>
 
 <ArchitectureSection
