@@ -110,26 +110,17 @@ Each document carries an `access_level` tag. `is_hr` is computed **server-side o
 
 <ArchitectureSection
   step="08"
-  title="Identity & Permission by Construction"
-  image="/assets/case-studies/covestro/images/08-identity-permission-contract.png"
-  alt="One knowledge tool call: identity headers set by the engine, active KB lookup, fail-closed HR check, hybrid retrieve, banned entities dropped before rerank, then an audit row"
->
-Identity is set by the engine from the platform profile, never by the model: it travels in **five headers**, and tools **accept no user id or scope at all**. Dropping LangChain for direct **boto3 Retrieve + Rerank** turned permission order into a guarantee rather than a patch: banned legal entities are dropped **before** reranking, so a restricted document can never win a slot. IAM allows `Retrieve` on an **explicit list of knowledge bases**, so the runtime KB switch can never widen read access.
-</ArchitectureSection>
-
-<ArchitectureSection
-  step="09"
   title="Release Gates: Quality Parity & Latency"
-  image="/assets/case-studies/covestro/images/09-release-gates.png"
+  image="/assets/case-studies/covestro/images/08-release-gates.png"
   alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
 >
 Quality and speed were gated separately. **Parity first**: 30 reference questions, only the switch flipped, **scored by hand** — the new platform matched or beat the old one on **30 of 30**. For latency, joining client timings with engine logs on `conversation_id` showed the engine **buffered whole answers**. Three fixes took first-content **P50 from 18.6 s to 6.3 s**, below the legacy 7.7 s.
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="10"
+  step="09"
   title="Zero-Downtime Cutover Behind an SSM Switch"
-  image="/assets/case-studies/covestro/images/10-cutover-ssm-switch.png"
+  image="/assets/case-studies/covestro/images/09-cutover-ssm-switch.png"
   alt="The v1 chat Lambda as a dumb proxy: an SSM switch sends traffic to the SigV4-signed agent engine or, on any error, back to the monolith"
   highlight
   challenge="Users arrive through a third-party chat platform that could not be changed, with no downtime budget — every step had to be reversible in under a minute."
@@ -138,9 +129,9 @@ The monolith's chat Lambda became a **dumb proxy**: sign the byte-identical requ
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="11"
+  step="10"
   title="Data-Plane Ownership Transfer, Zero ID Changes"
-  image="/assets/case-studies/covestro/images/11-data-plane-migration.png"
+  image="/assets/case-studies/covestro/images/10-data-plane-migration.png"
   alt="Knowledge base, OpenSearch collection, tables, buckets and the ingestion pipeline moved from the monolith CDK app to a new data repo by stack refactor and cdk import"
   highlight
   challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith. Rebuilding meant re-ingesting every article and new ids everywhere."
