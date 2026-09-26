@@ -97,30 +97,41 @@ About **85% of questions hit the same articles**. Questions are embedded with **
 Each document carries an `access_level` tag. `is_hr` is computed **server-side on every turn**, cached briefly and **fail-closed**; client flags are never trusted. The filter sits at a **single choke point** every agent inherits. The rollout followed one invariant — filter **on before** the first restricted document lands — across **four gated stages**. Non-HR users saw **0 restricted references**.
 </ArchitectureSection>
 
-<PhaseMarker label="Phase 2 — Tailor 2.0: platform migration" highlight />
+<PhaseMarker label="Across both phases — delivery pipeline" />
 
 <ArchitectureSection
   step="07"
+  title="Delivery Pipeline: CI/CD, IaC & LLM Regression"
+  image="/assets/case-studies/covestro/images/07-delivery-pipeline.png"
+  alt="Before: merging to main deployed straight to production with no tests or infra diff. After: pull-request CI with coverage, a cdk diff gate, DEV deploy through OIDC with smoke tests, an LLM regression suite, and a manual production dispatch"
+>
+At takeover, merging to `main` was the production deploy, with no unit tests and no infrastructure diff. Now every repo runs one pipeline: lint, unit tests with an **80% coverage floor** and a **`cdk diff` against production** on each pull request; merging deploys to DEV through **GitHub OIDC** with an automatic smoke test. Any prompt, model or retrieval change must pass an **LLM regression suite** against the last release before a **manual production dispatch**. Features ship switched off, so **deploy is not release**.
+</ArchitectureSection>
+
+<PhaseMarker label="Phase 2 — Tailor 2.0: platform migration" highlight />
+
+<ArchitectureSection
+  step="08"
   title="Tailor 2.0 Platform: Engine + MCP Services"
-  image="/assets/case-studies/covestro/images/07-tailor-2-platform.png"
+  image="/assets/case-studies/covestro/images/08-tailor-2-platform.png"
   alt="Tailor 2.0 on AWS: a stateless agent engine on Lambda with agent config in DynamoDB, three MCP services invoked as Lambdas, a tool-audit table and the tailor-core data plane"
 >
 **Prompts and tools are data, not code** — that is the biggest difference between v1 and 2.0. A **stateless engine** — LangGraph ReAct behind a streaming Function URL, history arriving with every request — owns the conversation loop, guardrails on input and output, and identity; it never calls a business API. Three **MCP services** for knowledge, ServiceNow and Workday expose typed tools through the MCP SDK and are invoked as Lambdas with a JSON-RPC payload; each resolves permissions server-side and writes an audit row. Agents live in **DynamoDB** — one active revision, a tool allowlist resolved through a **three-layer registry** — so a new source is a new service plus one config item.
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="08"
+  step="09"
   title="Release Gates: Quality Parity & Latency"
-  image="/assets/case-studies/covestro/images/08-release-gates.png"
+  image="/assets/case-studies/covestro/images/09-release-gates.png"
   alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
 >
 Quality and speed were gated separately. **Parity first**: 90 reference questions covering every case type and the edge cases, only the switch flipped, scored by an **LLM judge** whose scores the HR team then reviewed — the new platform matched or beat the old one on **90 of 90**. For latency, joining client timings with engine logs on `conversation_id` exposed **fake streaming**: nothing was sent until the whole answer was ready. Three fixes took **time to first token (P50) from 18.6 s to 6.3 s**, below the legacy 7.7 s.
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="09"
+  step="10"
   title="Zero-Downtime Cutover Behind an SSM Switch"
-  image="/assets/case-studies/covestro/images/09-cutover-ssm-switch.png"
+  image="/assets/case-studies/covestro/images/10-cutover-ssm-switch.png"
   alt="An SSM switch inside the v1 chat Lambda sends each request either to the IAM-signed agent engine or to the old monolith agents, with no per-request fallback"
   highlight
   challenge="Users arrive through a third-party chat platform that could not be changed, with no downtime budget — every step had to be reversible in under a minute."
@@ -129,9 +140,9 @@ Every request already passed through the monolith's chat Lambda, so the switch w
 </ArchitectureSection>
 
 <ArchitectureSection
-  step="10"
+  step="11"
   title="Data-Plane Ownership Transfer, Zero ID Changes"
-  image="/assets/case-studies/covestro/images/10-data-plane-migration.png"
+  image="/assets/case-studies/covestro/images/11-data-plane-migration.png"
   alt="Knowledge base, OpenSearch collection, tables, buckets and the ingestion pipeline moved from the monolith CDK app to a new data repo by stack refactor and cdk import"
   highlight
   challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith. Rebuilding meant re-ingesting every article and new ids everywhere."
