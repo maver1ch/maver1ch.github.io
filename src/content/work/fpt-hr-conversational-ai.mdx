@@ -121,11 +121,11 @@ Quality and speed were gated separately. **Parity first**: 90 reference question
   step="09"
   title="Zero-Downtime Cutover Behind an SSM Switch"
   image="/assets/case-studies/covestro/images/09-cutover-ssm-switch.png"
-  alt="The v1 chat Lambda as a dumb proxy: an SSM switch sends traffic to the SigV4-signed agent engine or, on any error, back to the monolith"
+  alt="An SSM switch inside the v1 chat Lambda sends each request either to the IAM-signed agent engine or to the old monolith agents, with no per-request fallback"
   highlight
   challenge="Users arrive through a third-party chat platform that could not be changed, with no downtime budget — every step had to be reversible in under a minute."
 >
-The monolith's chat Lambda became a **dumb proxy**: sign the byte-identical request, forward it to the engine, return the stream untouched. One **SSM parameter** is the switch, and **any error means off**. Testing through the real UI caught **CloudFront dropping idle connections at 30 s**, fixed with a **15 s heartbeat**. Rollback was **one command, rehearsed at 34.8 s**.
+Every request already passed through the monolith's chat Lambda, so the switch went there: one **SSM parameter**, read per request. When it is on, the Lambda **signs the same request with IAM**, forwards it to the engine and streams the answer back; when it is off, the old agents answer as before. There is deliberately **no automatic per-request fallback** — it would run a turn twice, possibly creating a duplicate ticket, and hide failures from alarms. Switching is a person's decision: **one value, no deploy**, with rollback **rehearsed at 34.8 s**.
 </ArchitectureSection>
 
 <ArchitectureSection
