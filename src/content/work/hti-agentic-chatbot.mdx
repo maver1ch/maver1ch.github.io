@@ -39,8 +39,9 @@ HTI Group needed one chatbot that could both answer from scattered HR knowledge 
   title="High-Level System Architecture"
   image="/assets/case-studies/hti/01-high-level-architecture.png"
   alt="High-Level System Architecture"
+  challenge="Staff wanted one chatbot to answer HR questions, act for them and chat."
 >
-Every request enters through a **FastAPI gateway**, picks up its **session memory**, and reaches a **router agent** that hands it to one of three specialists — **Knowledge**, **Action** or **ChitChat** — each running its own **ReAct loop** of reasoning and tool calls. In the POC the Knowledge agent's tools sit on **Qdrant** (vectors), **MongoDB** (full-text and metadata), **Neo4j** (knowledge graph) and the HR files themselves (tabular data). Whichever agent answers, the user gets one unified response.
+A **FastAPI gateway** adds **session memory**, then a **router agent** picks the Knowledge, Action or ChitChat agent, each with its own **ReAct loop**. In the POC, Knowledge tools read Qdrant, MongoDB, Neo4j and HR files. Every path ends in one unified response.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -48,8 +49,9 @@ Every request enters through a **FastAPI gateway**, picks up its **session memor
   title="Multi-Agent Router (ReAct)"
   image="/assets/case-studies/hti/02-multi-agent-router.png"
   alt="Multi-Agent Router"
+  challenge="Policy questions crossed sub-domains, and actions needed permission checks."
 >
-The brain of the chatbot. The **Knowledge agent** decides which sources to query, calls **vector, full-text, graph and tabular tools in parallel**, and checks whether the context is sufficient — if not, it loops back and searches again before writing the final answer. The **Action agent** first checks that all parameters are present (and asks the user for any that are missing), then runs an **RBAC check** before calling external APIs: summarize a **Discord** thread, book or check a **meeting room**, calculate **income tax**, or open an **IT support ticket**. A denied check returns an authorization error, never a silent action. The **ChitChat agent** handles general conversation with a web search tool. Splitting the work this way makes each agent independently testable.
+The **Knowledge agent** calls vector, full-text, graph and tabular tools **in parallel**, then loops until the context is enough. The **Action agent** asks for missing parameters and runs an **RBAC check** before calling external APIs; a denial returns an authorization error. The **ChitChat agent** uses web search.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -57,8 +59,9 @@ The brain of the chatbot. The **Knowledge agent** decides which sources to query
   title="Data Ingestion Pipeline"
   image="/assets/case-studies/hti/03-data-ingestion-pipeline.png"
   alt="Data Ingestion Pipeline"
+  challenge="Mixed headers, paragraphs and tables break naive chunking."
 >
-An offline pipeline in four stages. **Docling** parses the layout of PDF, Word and Excel files into headers, paragraphs and tables. A semantic merger builds **parent chunks** for context, which a recursive splitter cuts into small **leaf chunks** for search — **hierarchical semantic chunking**. An **LLM context injector** then rewrites each leaf chunk with the context of its parent, so every retrieval unit still makes sense on its own, while an **LLM graph extractor** turns parent chunks into subject–predicate–object **triplets** for Neo4j. Finally, leaf chunks are embedded with **BGE-M3** into Qdrant, and content plus metadata go to MongoDB for full-text search.
+**Docling** parses each file's layout. **Hierarchical semantic chunking** splits large parent chunks into small leaf chunks. An **LLM context injector** adds parent context to each leaf, while an LLM graph extractor turns parents into Neo4j triplets. **BGE-M3** embeds leaves into Qdrant; content and metadata go to MongoDB.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 2 — Enterprise Production" highlight />
@@ -69,9 +72,9 @@ An offline pipeline in four stages. **Docling** parses the layout of PDF, Word a
   image="/assets/case-studies/hti/04-aws-migration-architecture.png"
   alt="AWS Cloud Migration Architecture"
   highlight
-  challenge="The POC ran on a single box with local databases. Production needed private networking, managed data stores, and a clean split between long-running agent work and short tool calls — without rewriting the agent layer."
+  challenge="Production needed private networking and managed stores, without rewriting the POC agents."
 >
-Clients call **API Gateway** (OAuth2 / JWT validation) over SSE REST; traffic goes through an ALB into **ECS Fargate**, where a **Chat Service** (FastAPI gateway) and an **Agent Service** (LangGraph multi-agent) talk over **gRPC streaming**. Short, async tool invocations run on **AWS Lambda**. Inference goes to **Amazon Bedrock (Claude Sonnet)** through an interface **VPC endpoint**, and S3 through a gateway endpoint, so nothing leaves the private network. The POC stores map to managed services — OpenSearch for vectors, Neptune for the knowledge graph, DocumentDB for metadata — plus RDS PostgreSQL for relational data and ElastiCache for sessions and caching.
+**API Gateway** checks OAuth2 / JWT and an ALB feeds **ECS Fargate**, where Chat and Agent services talk over gRPC streaming. Async tool calls run on **AWS Lambda**. **Bedrock** and S3 are reached via **VPC endpoints**; data lives in OpenSearch, Neptune, DocumentDB, RDS and ElastiCache.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -80,8 +83,9 @@ Clients call **API Gateway** (OAuth2 / JWT validation) over SSE REST; traffic go
   image="/assets/case-studies/hti/05-serverless-ingestion-pipeline.png"
   alt="Serverless Ingestion Pipeline"
   highlight
+  challenge="Ingestion had to run on AWS without a server sitting idle between uploads."
 >
-On AWS, ingestion is **event-driven and serverless**. An admin uploads a document to **S3**; the **S3 event notification** triggers a **Lambda ingestion engine** in a private subnet. It generates embeddings with a **Bedrock** embedding model through a VPC endpoint, then indexes vectors in **OpenSearch**, loads triplets into **Neptune**, and saves content and metadata to **DocumentDB**. No compute sits idle between uploads, and bursts of new documents scale out on their own.
+An admin uploads a document to **S3**, and an **S3 event notification** triggers a **Lambda ingestion engine** in a private subnet. It creates embeddings with **Bedrock** through a VPC endpoint, then writes vectors to OpenSearch, triplets to Neptune, and content and metadata to DocumentDB.
 </ArchitectureSection>
 
 ## Outcome

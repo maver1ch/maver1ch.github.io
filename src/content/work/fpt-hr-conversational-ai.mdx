@@ -43,7 +43,7 @@ Covestro's HR assistant was live across countries, but had spent a year in maint
   image="/assets/case-studies/covestro/images/01-takeover-audit.png"
   alt="The inherited Tailor v1 architecture with measured findings pinned to the knowledge base, the LLM, the guardrail, CloudWatch and CI/CD"
 >
-Read the system offline, **measure, not fix**, then turn the numbers into a **12-item backlog**. **Recall@5 52.7%** and **faithfulness 74.5%** showed the lever was what the model sees, not the model.
+I read the system offline first, then used the one window of cloud access to **measure, not fix**, and turned the numbers into a **12-item backlog** with evidence on every line. **Recall@5 52.7%** and **faithfulness 74.5%** showed the lever was what the model sees, not the model. Token metrics were **never emitted**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -54,7 +54,7 @@ Read the system offline, **measure, not fix**, then turn the numbers into a **12
   highlight
   challenge="Nobody could say why an answer was wrong, how slow each step was, or what it cost."
 >
-**Langfuse** traces every turn: **tokens, cost and latency per step**, a **golden dataset** of ~200 questions as the baseline, and **personal data masked** at the source.
+I integrated **Langfuse** so every turn became one trace, with **tokens, cost and latency per step**. Model **cost comparison** became a query. A **golden dataset** of ~200 HR questions is the baseline, and **personal data is masked** at the source.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -63,7 +63,7 @@ Read the system offline, **measure, not fix**, then turn the numbers into a **12
   image="/assets/case-studies/covestro/images/03-knowledge-ingestion.png"
   alt="Hourly ServiceNow ingestion pipeline on AWS: EventBridge, Lambda, SQS with DLQ, DynamoDB, an attachment conversion branch, S3, a chunking Lambda, Bedrock Knowledge Base and OpenSearch"
 >
-Tables were flattened, and **fixed-size** chunks cut through them. I rebuilt the converter so **Markdown tables survive**, then moved to **hierarchical, table-aware chunking**.
+A **full corpus scan** found two faults in one layer. The converter flattened tables, so salary and benefit grids lost their rows and columns, and **fixed-size** chunks cut through them. I rebuilt the converter so **Markdown tables survive**, then moved to **hierarchical, table-aware chunking**: a split that lands inside a table takes the whole table.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -71,9 +71,9 @@ Tables were flattened, and **fixed-size** chunks cut through them. I rebuilt the
   title="Production-like DEV: Mirroring the Production Knowledge Base"
   image="/assets/case-studies/covestro/images/04-kb-mirror.png"
   alt="Cross-account mirror of the production knowledge base into DEV, with a runtime SSM switch between the mirror and the stale QA knowledge base"
-  challenge="DEV used a stale QA knowledge base (815 vs 995 articles), so passing on DEV proved nothing."
+  challenge="DEV read a stale QA knowledge base (815 vs 995 articles), so passing on DEV proved nothing."
 >
-A **cross-account, read-only mirror** of the production knowledge base in DEV, synced **by ETag** and chosen by an **SSM parameter** at runtime.
+I built a **cross-account, read-only mirror** of the production knowledge base in DEV, synced **by ETag**. An **SSM parameter** picks the live knowledge base at runtime, so the move to **Claude Sonnet 4.5** was proven before it shipped.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -84,7 +84,7 @@ A **cross-account, read-only mirror** of the production knowledge base in DEV, s
   highlight
   challenge="The same questions come in a hundred wordings, and a shared cache could leak across permissions."
 >
-**Cohere** embeddings matched in **ElastiCache** at **≥ 0.95** similarity; the **cache key carries the user's permission scope**. Repeats return in **~150 ms** with zero tokens.
+Questions are embedded with **Cohere Multilingual v3** and matched in **ElastiCache**; at 0.95 similarity or above, the stored answer skips retrieval and the LLM. The **cache key carries the user's permission scope**. Repeats return in **~150 ms** with zero tokens.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -95,7 +95,7 @@ A **cross-account, read-only mirror** of the production knowledge base in DEV, s
   highlight
   challenge="134 HR-only articles had to share one index with ~1,000 public ones."
 >
-A **server-side HR check** on every turn and one filter at a **single choke point**, switched **on before** restricted content landed. **0 restricted references** reached non-HR users.
+Each document carries an `access_level` tag. HR status is checked **server-side on every turn**. One filter sits at a **single choke point** every agent inherits, and it was switched **on before** the first restricted document landed. Non-HR users saw **0 restricted references**.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 2 — Tailor 2.0: platform migration" highlight />
@@ -106,7 +106,7 @@ A **server-side HR check** on every turn and one filter at a **single choke poin
   image="/assets/case-studies/covestro/images/07-tailor-2-platform.png"
   alt="Tailor 2.0 on AWS: a stateless agent engine on Lambda with agent config in DynamoDB, three MCP services invoked as Lambdas, a tool-audit table and the tailor-core data plane"
 >
-**Prompts and tools are data, not code.** A **stateless LangGraph engine** runs the loop and guardrails; **MCP services** (knowledge, ServiceNow, Workday) own the tools and audit every call; agents live in **DynamoDB**.
+**Prompts and tools are data, not code.** A **stateless LangGraph engine** owns the conversation loop and guardrails, but never calls a business API. Three **MCP services** (knowledge, ServiceNow, Workday) own the tools, resolve permissions and audit every call. Agents live in **DynamoDB**, so a new source is one service plus one config item.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -115,7 +115,7 @@ A **server-side HR check** on every turn and one filter at a **single choke poin
   image="/assets/case-studies/covestro/images/08-release-gates.png"
   alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
 >
-**Parity**: 90 questions scored by an **LLM judge**, reviewed by HR — **90 / 90**. **Latency**: fixed fake streaming, first token **18.6 s → 6.3 s** (legacy 7.7 s).
+**Parity**: 90 reference questions scored by an LLM judge and reviewed by HR; the new platform matched or beat the old one on **90 / 90**. **Latency**: client timings joined with engine logs exposed **fake streaming**. Three fixes took first token from **18.6 s to 6.3 s**, below the legacy 7.7 s.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -126,7 +126,7 @@ A **server-side HR check** on every turn and one filter at a **single choke poin
   highlight
   challenge="A third-party chat front end we could not change, and no downtime budget."
 >
-One **SSM switch** in the old chat Lambda sends each request to the new engine or the old agents. **No deploy to switch**; rollback **rehearsed at 34.8 s**.
+I put one **SSM parameter** in the old chat Lambda, read per request. When on, the Lambda **signs the request with IAM** and forwards it to the new engine; when off, the old agents answer. **One value, no deploy**, with rollback **rehearsed at 34.8 s**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -135,9 +135,9 @@ One **SSM switch** in the old chat Lambda sends each request to the new engine o
   image="/assets/case-studies/covestro/images/10-data-plane-migration.png"
   alt="Knowledge base, OpenSearch collection, tables, buckets and the ingestion pipeline moved from the monolith CDK app to a new data repo by stack refactor and cdk import"
   highlight
-  challenge="Rebuilding the data plane meant re-ingesting everything and new ids everywhere."
+  challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith, and rebuilding meant new ids everywhere."
 >
-**Move, don't rebuild.** After one aborted window and **16 probe refactors**, **11 resources moved in 45 s** — **zero id changes**, no re-ingestion.
+A spike settled it: **move, don't rebuild**. When the first window was **aborted**, **16 probe refactors** found an undocumented CloudFormation rule. The next window moved **11 resources in 45 s**, with **zero id changes** and no re-ingestion.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 3 — Agent Configurator: putting the business in control" highlight />
@@ -156,7 +156,7 @@ One **SSM switch** in the old chat Lambda sends each request to the new engine o
   highlight
   challenge="Only developers could change an agent, and nobody else could see the system."
 >
-A **React** app (API on **AWS Lambda**, company **SSO**) that **maps every agent and MCP service**. Drag to add a handoff or a tool; edits stay **drafts**.
+I built **Agent Configurator**: a **React** app, API on **AWS Lambda**, company **SSO**. It **maps every agent and MCP service**, with handoffs and tool use as lines. Drag between agents to add a handoff, or onto a service to pick tools; edits stay drafts.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -164,9 +164,9 @@ A **React** app (API on **AWS Lambda**, company **SSO**) that **maps every agent
   title="Edit as a New Version, Checked Like the Engine"
   image="/assets/case-studies/agent-configurator/02-edit-as-new-version.jpg"
   alt="Agent edit form: tools, handoffs, handoff messages, follow-up suggestions and model settings, each with a plain-language label and one-line help"
-  challenge="Hand-edited config had already gone wrong twice."
+  challenge="Hand-edited config had already gone wrong twice, once creating an HR case without asking the user."
 >
-A plain-language form, tools **live from the engine**, every save checked with **the engine's own rules**. Saving **only appends a version** — nothing is overwritten.
+Every field has a **plain-language name** and one line of help, tools come **live from the engine**, and a change note is required. Each save is checked with **the engine's own rules**. Saving **only appends a new version**; nothing is overwritten.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -177,7 +177,7 @@ A plain-language form, tools **live from the engine**, every save checked with *
   highlight
   challenge="A config change has no pull request and no CI, and goes live on the next message."
 >
-The **diff** is the review. **Activate** test-reads like the engine and swaps in **one atomic step**; production needs the version number typed. **Rollback** = activate an older version.
+The **diff** (prompt line by line, tools and handoffs added or removed) is the review. **Activate** test-reads it like the engine, then swaps it in **one atomic step**; production needs the version number typed. **Rollback** means activating an older version.
 </ArchitectureSection>
 
 <PhaseMarker label="Across all phases — delivery pipeline" />
@@ -188,7 +188,7 @@ The **diff** is the review. **Activate** test-reads like the engine and swaps in
   image="/assets/case-studies/covestro/images/11-delivery-pipeline.png"
   alt="Before: merging to main deployed straight to production with no tests or infra diff. After: pull-request CI with coverage, a cdk diff gate, DEV deploy through OIDC with smoke tests, an LLM regression suite, and a manual production dispatch"
 >
-Every pull request: tests (**80% coverage**) and a **`cdk diff`** against production. An **LLM regression suite** gates a **manual production release**, and features ship switched off.
+Every pull request runs lint, unit tests with an **80% coverage floor** and a **`cdk diff` against production**; merging deploys to DEV through **GitHub OIDC** with a smoke test. Prompt, model or retrieval changes must pass an **LLM regression suite** before a **manual production release**. Features ship switched off.
 </ArchitectureSection>
 
 ## Outcome

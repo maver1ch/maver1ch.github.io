@@ -41,8 +41,9 @@ ESG disclosure for Vietnamese banks has moved from a PR exercise to a hard compl
   image="/assets/case-studies/esg-business-report/1-overall-system-architecture.png"
   alt="High-level system architecture — five modules covering metadata extraction, report processing, knowledge graph construction, KG-driven RAG, and automated fact-checking"
   highlight
+  challenge="Raw bank PDFs and GRI standards are too messy to query directly at question time."
 >
-Two layers: **offline** (Modules 1–3) builds the Neo4j graph from GRI standards and bank PDFs; **online** (Modules 4–5) handles user questions with KG-driven retrieval and post-generation fact-checking. The rest of the page walks each module in order.
+The system has two layers. The **offline** layer (Modules 1–3) extracts GRI metadata, segments bank reports and builds the **Neo4j graph**. The **online** layer (Modules 4–5) answers questions with **KG-driven retrieval**, then checks each answer with **automated fact-checking**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -50,8 +51,9 @@ Two layers: **offline** (Modules 1–3) builds the Neo4j graph from GRI standard
   title="Module 1 — GRI Metadata Extraction Pipeline"
   image="/assets/case-studies/esg-business-report/2-metadata-extraction.png"
   alt="GRI metadata extraction pipeline — PyMuPDF parsing followed by LLM-driven semantic extraction into a 5-tuple structured record"
+  challenge="Bank wording rarely matches GRI terms one-to-one, so the system needs a shared vocabulary."
 >
-The reference layer. PyMuPDF parses official GRI standards (Universal + 200/300/400) into chunks; an LLM with few-shot ESG examples emits a **5-tuple per disclosure**. This becomes the controlled vocabulary every downstream module aligns to.
+**PyMuPDF** parses the official GRI standards (Series 200, 300, 400) into chunks. An LLM with **few-shot ESG examples** turns each disclosure into a **5-tuple**: category, indicator, title, disclosure and detail. This becomes the **controlled vocabulary** every later module aligns to.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -59,8 +61,9 @@ The reference layer. PyMuPDF parses official GRI standards (Universal + 200/300/
   title="Module 2 — ESG Reports Preprocessing"
   image="/assets/case-studies/esg-business-report/3-report-processing.png"
   alt="ESG reports preprocessing pipeline — OLMoCR linearization, RAP and ALIGN ToC anchoring, Qwen3-4B sliding-window segmentation, hierarchical labeling"
+  challenge="Bank reports are 28–80 page PDFs with multi-column layouts, tables and mixed headings."
 >
-The raw-PDF side. **OLMoCR** flattens chaotic multi-column layouts and embedded tables; RAP + ALIGN anchors the ToC; **Qwen3-4B's sliding window** finds *semantic* breakpoints, not fixed-size chunks. Output: 4-level labeled disclosure segments ready for the graph.
+**OLMoCR** turns chaotic layouts and tables into ordered text. RAP + ALIGN anchors headings to the text. **Qwen3-4B** with a sliding window finds **semantic breakpoints**, not fixed-size chunks, and each segment gets a **4-level label**: category, GRI indicator, statement type, sentiment.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 2 — Knowledge & Retrieval" highlight />
@@ -70,8 +73,9 @@ The raw-PDF side. **OLMoCR** flattens chaotic multi-column layouts and embedded 
   title="Module 3 — ESG Knowledge Graph in Neo4j"
   image="/assets/case-studies/esg-business-report/4-knowledge-graph.png"
   alt="ESG knowledge graph construction — 5 node types and relational edges including HAS_REPORT, CONTAINS, RELATED_TO, BELONGS_TO"
+  challenge="Plain vector search cannot follow links across companies, reports and indicators, or show a fact's source."
 >
-Neo4j graph with 5 node types and explicit relational edges. Each statement node carries both its **semantic vector embedding** *and* its **provenance metadata** (company, year, page). This is the move that unlocks graph traversal *and* 100% source-traceable answers downstream.
+Neo4j holds **5 node types** (Company, Report, ESG_Statement, GRI_Indicator, ESG_Category) linked by edges like HAS_REPORT and BELONGS_TO. Each statement node stores its **vector embedding** and **provenance** (company, year, page). This allows graph traversal and fully source-traceable answers.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -80,8 +84,9 @@ Neo4j graph with 5 node types and explicit relational edges. Each statement node
   image="/assets/case-studies/esg-business-report/5-kg-rag.png"
   alt="KG-driven retrieval-augmented generation pipeline — question understanding, Cypher candidate generation, dual-stream scoring, hybrid evidence fusion, provenance-grounded generation"
   highlight
+  challenge="Analyst questions cross sections, and a single top-K vector lookup cannot compose the answer."
 >
-The online path. A user question becomes a structured **Cypher query** against the Neo4j graph — not the usual top-K vector lookup. A dual-stream scorer (semantic + keyword) fuses candidates; the top set goes to the LLM with full provenance attached, so every generated sentence is traceable to its source.
+The question is classified, then an LLM turns it into a **Cypher query** on Neo4j. **Dual-stream scoring** (semantic + keyword) ranks the candidates; top results are fused and deduped. The answer carries **full provenance**, so every sentence traces to its source.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 3 — Reliability: Automated Fact-Checking" highlight />
@@ -91,8 +96,9 @@ The online path. A user question becomes a structured **Cypher query** against t
   title="Module 5 — Fact-Checking Pipeline Overview"
   image="/assets/case-studies/esg-business-report/6-fact-checking.png"
   alt="Six-stage automated fact-checking pipeline — atomic claim extraction, query generation, hybrid retrieval, rerank and distill, LLM-as-judge, aggregation"
+  challenge="Standard RAG can invent numbers or mix them up across companies and years."
 >
-The reliability layer. Every answer is decomposed into **atomic claims**; each claim gets its own retrieval, reranking, and verdict pass. This flips RAG from "sometimes hallucinates" into something a compliance team can put in front of a regulator.
+Each answer is split into **atomic claims**. Every claim gets its own queries, **hybrid retrieval**, reranking and an **LLM-as-judge** verdict. Results combine into a verification report of claims, verdicts and citations. The report is something a compliance team can show a regulator.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -100,8 +106,9 @@ The reliability layer. Every answer is decomposed into **atomic claims**; each c
   title="Hybrid Retrieval & Cross-Encoder Reranking"
   image="/assets/case-studies/esg-business-report/7-retrieval-reranking.png"
   alt="Stage 3-4 evidence construction — parallel hybrid retrieval from internal BM25 + dense FAISS and external web search, then deduplication, cross-encoder reranking, and top-K distillation"
+  challenge="Bi-encoder retrieval misses numeric agreement, negation and unit mismatches."
 >
-Two parallel retrieval channels: **internal** (BM25 + dense FAISS over the private ESG corpus) and **external** (Google-compatible web search). A **cross-encoder** catches what bi-encoders miss — numeric agreement, negation, unit mismatches — producing the final top-K evidence set.
+Each claim's queries search two channels in parallel: **internal** BM25 + dense **FAISS** over the private ESG corpus (top-5 each), and **external** web search (top-5). Results are merged and deduped, keeping the max score. A **cross-encoder** then filters by threshold and keeps the top-K as final evidence.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -110,8 +117,9 @@ Two parallel retrieval channels: **internal** (BM25 + dense FAISS over the priva
   image="/assets/case-studies/esg-business-report/8-verdict-result-aggregation.png"
   alt="Verdict aggregation — LLM-as-a-judge assigns FEVER-style labels (SUPPORTS / NOT_ENOUGH_INFO / REFUTES), then signed and overall confidence is computed and a manual review flag fires below threshold"
   highlight
+  challenge="In regulated work, a low-confidence answer must never ship silently."
 >
-**LLM-as-judge** assigns each claim a FEVER-style label (SUPPORTS / REFUTES / NOT_ENOUGH_INFO). Labels aggregate to a **signed confidence in [-1, 1]**; below threshold, a manual-review flag fires. The system never silently ships a low-confidence answer — the bar for regulated workflows.
+An **LLM-as-judge** labels each claim SUPPORTS (+1), NOT_ENOUGH_INFO (0) or REFUTES (-1), FEVER-style, with a confidence score. Labels combine into a **signed confidence in [-1, 1]**: positive means support, negative means refutation. Below a set threshold, a **manual-review flag** fires.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 4 — Validation" />
@@ -121,8 +129,9 @@ Two parallel retrieval channels: **internal** (BM25 + dense FAISS over the priva
   title="Qualitative Case Studies — VPBank, ACB, BIDV"
   image="/assets/case-studies/esg-business-report/9-examples.png"
   alt="Three qualitative case studies — VPBank 2024 green credit growth, ACB 2023 gender equality in management, BIDV cross-year electricity efficiency tracking"
+  challenge="A correct headline number is not enough; analysts need context and the source."
 >
-Three worked examples. **VPBank** green credit (+48.5%) — surfaces volume *and* reach. **ACB** female managers (51%) — adds board-level diversity context. **BIDV** electricity efficiency — preserves each year's normalization basis so cross-year tracking stays honest.
+Three worked examples, each traced to page and GRI indicator. **VPBank** green credit (+48.5%) also surfaces the outstanding balance and customer growth. **ACB** female managers (51%) adds board-level diversity. **BIDV** electricity efficiency keeps each year's own normalization basis, so cross-year tracking stays honest.
 </ArchitectureSection>
 
 ## Outcome

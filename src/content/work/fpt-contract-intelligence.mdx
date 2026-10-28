@@ -33,7 +33,7 @@ import ArchitectureSection from '../../components/case-study/architecture-sectio
   alt="User flow: sign in, upload, processing and a ready notification in the front stage; heading, price and indexing skills in the background; a review workspace with highlighted file, chat with citations, search and export"
   challenge="Each contract needs heavy processing, and users cannot sit and wait for it."
 >
-Upload and walk away: skills run in the background, and a **notification** opens a **review workspace** — highlighted file, **chat with citations** over SSE, search and redacted export.
+Users upload a PDF or DOCX and close the tab. Heading, price and indexing skills run in the background, and a **notification** opens the **review workspace** when results are ready: the highlighted file, **chat with citations** over SSE, search and redacted export.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -44,7 +44,7 @@ Upload and walk away: skills run in the background, and a **notification** opens
   highlight
   challenge="A mega-prompt cannot be tuned for one task without breaking another."
 >
-Each capability is an **independent skill**; one request runs one skill end to end. Inside: **Context Funnel** → **agentic loop** on Claude that searches **OpenSearch** only when unsure → **Pydantic** output. **+35% accuracy.**
+Price extraction, heading detection, heading review and contract QA are each an **independent skill**, and one request runs one skill end to end. A **Context Funnel** filters the document, then an **agentic loop** on Claude searches **OpenSearch** only when confidence is low. **Pydantic** checks the output. Accuracy rose **+35%**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -53,7 +53,7 @@ Each capability is an **independent skill**; one request runs one skill end to e
   image="/assets/case-studies/fpt-contract/images/03-skill-anatomy.png"
   alt="A skill folder: tools with parsers, detectors and agent tools; references loaded only when signals match; SKILL.md always loaded; all assembled into one XML prompt"
 >
-A skill is a **folder**: Python `tools/` run first, `references/` load **only when the signals match**, and `SKILL.md` always loads. The prompt carries only what this contract needs — **~5× fewer tokens**.
+A skill is a **folder**. Python `tools/` run first with no LLM cost and detect signals such as language, currency and document type. `references/` load **only when the signals match**, and `SKILL.md` always loads. For a Japanese SOW, the prompt drops from 20K to 4K tokens: **~5× fewer tokens**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -62,9 +62,9 @@ A skill is a **folder**: Python `tools/` run first, `references/` load **only wh
   image="/assets/case-studies/fpt-contract/images/04-async-batch.png"
   alt="API Lambda enqueues to extraction and indexing SQS queues; Lambda workers run through a workflow engine to Bedrock, Aurora and OpenSearch; failures go to DLQs and a Slack alert with replay"
   highlight
-  challenge="Synchronous calls timed out on thousands of contracts."
+  challenge="Synchronous calls timed out on thousands of contracts, and one failure could stop the whole batch."
 >
-**SQS** queues feed **Lambda** workers; a **workflow engine** makes every step retryable and **idempotent**. Failures land in a **DLQ** with a Slack replay button.
+The API Lambda sends jobs to two **SQS** queues, and **Lambda** workers pick them up in parallel. A **workflow engine** keeps state in Aurora, so each step is retryable and **idempotent**. Failures land in a **DLQ** with a Slack replay button.
 </ArchitectureSection>
 
 ## Outcome
