@@ -17,7 +17,7 @@ export const caseStudies: CaseStudyMeta[] = [
     slug: 'fpt-hr-conversational-ai',
     title: 'HR Conversational AI Platform',
     client: 'Covestro AG (via FPT Software)',
-    period: 'Jan 2026 – Present',
+    period: 'Mar 2026 – Present',
     blurb:
       'Revived and then replaced a production HR assistant for a Fortune 500 chemicals corporation: measured baseline, semantic cache, HR-only knowledge base, then a zero-downtime move to an MCP-based agent platform on AWS.',
     coverImage: '/assets/case-studies/covestro/cover.jpg',
@@ -29,7 +29,7 @@ export const caseStudies: CaseStudyMeta[] = [
     slug: 'fpt-contract-intelligence',
     title: 'AI Contract Intelligence System',
     client: 'FPT Software',
-    period: 'Feb 2026 – Jun 2026',
+    period: 'Jan 2026 – Feb 2026',
     blurb:
       'Skill-based framework with prompt chaining + Qdrant vector RAG. AWS Bedrock as multi-model LLM gateway. Async batch jobs on SQS scale to thousands of contracts per run.',
     coverImage: '/assets/case-studies/fpt-contract/cover.jpg',
