@@ -3,7 +3,16 @@ title: "Enterprise HR Conversational AI Platform"
 client: "Covestro AG (via FPT Software)"
 period: "Mar 2026 – Present"
 role: "AI Solution Architect"
-tldr: "Took over a production HR assistant for a Fortune 500 client — ~1,000 articles, 9 languages, a year in maintenance mode, nothing measured — as sole developer. Built the first quality baseline, PII-safe observability and evaluation, a permission-scoped semantic cache and an HR-only knowledge base. Then owned the zero-downtime migration from a LangGraph monolith to an MCP-based agent platform on AWS, moving the data plane with zero id changes."
+tldr: "Sole engineer and customer-facing owner of a Fortune 500 HR assistant (~1,000 articles, 9 languages). I took it from a year of unmeasured maintenance to a measured, multi-service agent platform on AWS — without downtime."
+highlights:
+  - label: "Problem first"
+    text: "Worked directly with the client's <strong>product owner and HR users</strong> on root causes and trade-offs. Measured before touching code: a first <strong>quality baseline</strong> and step-by-step tracing, with personal data masked."
+  - label: "Agent harness"
+    text: "Re-architected a monolith into a stateless, config-driven <strong>LangGraph engine</strong> that calls <strong>MCP tool services</strong> — guardrails in and out, versioned prompts, tool allowlists, and every tool call audited."
+  - label: "Evaluation loop"
+    text: "<strong>LLM-as-judge parity gates</strong> that the HR team reviewed, plus a <strong>regression suite</strong> on every prompt, model or retrieval change — so each release is measured, not guessed."
+  - label: "Own it in production"
+    text: "Permission-scoped <strong>semantic cache</strong> and an HR-only knowledge base for access control; <strong>zero-downtime cutover</strong> behind a switch with a rehearsed rollback; CI/CD and infrastructure as code."
 order: 1
 stack:
   - LangGraph
