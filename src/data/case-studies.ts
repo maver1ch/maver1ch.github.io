@@ -55,11 +55,11 @@ export const caseStudies: CaseStudyMeta[] = [
     client: 'HG Group',
     period: 'Sep 2024 – Feb 2025',
     blurb:
-      'On-premise RAG chatbot over the company document library. Hybrid Qdrant + MongoDB retrieval, hierarchical chunking, multi-LLM routing (GPT + Gemini), and self-hosted observability with Langfuse + Prometheus + Grafana.',
+      'On-premise RAG chatbot over the company document library. Hybrid Qdrant + MongoDB retrieval, hierarchical chunking, cross-encoder reranking and multi-LLM routing (GPT + Gemini).',
     coverImage: '/assets/case-studies/hg-chatbot/cover.jpg',
     coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
-    stack: ['BGE-M3', 'Qdrant', 'MongoDB', 'Ray Serve', 'Langfuse', 'Prometheus', 'GPT API'],
+    stack: ['BGE-M3', 'Qdrant', 'MongoDB', 'Ray Serve', 'Langfuse', 'Cross-Encoder', 'GPT API'],
   },
   {
     slug: 'esg-business-report',

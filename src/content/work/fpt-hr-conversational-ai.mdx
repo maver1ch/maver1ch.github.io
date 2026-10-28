@@ -137,7 +137,7 @@ I put one **SSM parameter** in the old chat Lambda, read per request. When on, t
   highlight
   challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith, and rebuilding meant new ids everywhere."
 >
-A spike settled it: **move, don't rebuild**. When the first window was **aborted**, **16 probe refactors** found an undocumented CloudFormation rule. The next window moved **11 resources in 45 s**, with **zero id changes** and no re-ingestion.
+A spike settled it: **move, don't rebuild**. I used **CloudFormation stack refactor** and **`cdk import`** to hand each resource to a new data repo. One window moved **11 resources in 45 s**, with **zero id changes** and no re-ingestion.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 3 — Agent Configurator: putting the business in control" highlight />
@@ -164,7 +164,7 @@ I built **Agent Configurator**: a **React** app, API on **AWS Lambda**, company 
   title="Edit as a New Version, Checked Like the Engine"
   image="/assets/case-studies/agent-configurator/02-edit-as-new-version.jpg"
   alt="Agent edit form: tools, handoffs, handoff messages, follow-up suggestions and model settings, each with a plain-language label and one-line help"
-  challenge="Hand-edited config had already gone wrong twice, once creating an HR case without asking the user."
+  challenge="Non-technical users needed to change agents without breaking the engine."
 >
 Every field has a **plain-language name** and one line of help, tools come **live from the engine**, and a change note is required. Each save is checked with **the engine's own rules**. Saving **only appends a new version**; nothing is overwritten.
 </ArchitectureSection>
