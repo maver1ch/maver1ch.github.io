@@ -3,16 +3,7 @@ title: "Enterprise HR Conversational AI Platform"
 client: "Covestro AG (via FPT Software)"
 period: "Mar 2026 – Present"
 role: "AI Solution Architect"
-tldr: "Sole engineer and customer-facing owner of a Fortune 500 HR assistant (~1,000 articles, 9 languages). I took it from a year of unmeasured maintenance to a measured, multi-service agent platform on AWS — without downtime."
-highlights:
-  - label: "Problem first"
-    text: "Worked directly with the client's <strong>product owner and HR users</strong> on root causes and trade-offs. Measured before touching code: a first <strong>quality baseline</strong> and step-by-step tracing, with personal data masked."
-  - label: "Agent harness"
-    text: "Re-architected a monolith into a stateless, config-driven <strong>LangGraph engine</strong> that calls <strong>MCP tool services</strong> — guardrails in and out, versioned prompts, tool allowlists, and every tool call audited."
-  - label: "Evaluation loop"
-    text: "<strong>LLM-as-judge parity gates</strong> that the HR team reviewed, plus a <strong>regression suite</strong> on every prompt, model or retrieval change — so each release is measured, not guessed."
-  - label: "Own it in production"
-    text: "Permission-scoped <strong>semantic cache</strong> and an HR-only knowledge base for access control; <strong>zero-downtime cutover</strong> behind a switch with a rehearsed rollback; CI/CD and infrastructure as code."
+tldr: "Sole engineer and customer-facing owner of a Fortune 500 HR assistant. I worked with HR users to find root causes, measured quality before changing code, rebuilt it as an MCP-based agent platform on AWS with evaluation gates on every release, then cut over to production with zero downtime and a rehearsed rollback."
 order: 1
 stack:
   - LangGraph

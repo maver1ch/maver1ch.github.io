@@ -9,15 +9,6 @@ const work = defineCollection({
     period: z.string(),
     role: z.string(),
     tldr: z.string(),
-    // Optional labelled points shown under the TL;DR lead, for skimmable summaries
-    highlights: z
-      .array(
-        z.object({
-          label: z.string(),
-          text: z.string(),
-        }),
-      )
-      .default([]),
     stack: z.array(z.string()).default([]),
     metrics: z
       .array(
