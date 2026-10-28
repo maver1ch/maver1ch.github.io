@@ -31,11 +31,11 @@ export const caseStudies: CaseStudyMeta[] = [
     client: 'FPT Software',
     period: 'Jan 2026 – Feb 2026',
     blurb:
-      'Skill-based framework with prompt chaining + Qdrant vector RAG. AWS Bedrock as multi-model LLM gateway. Async batch jobs on SQS scale to thousands of contracts per run.',
+      'Skill-based framework on AWS: Python filters first, then a Claude agent loop that searches OpenSearch only when unsure. +35% accuracy, ~5× fewer tokens, async batches of thousands of contracts.',
     coverImage: '/assets/case-studies/fpt-contract/cover.jpg',
     coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
-    stack: ['Qdrant', 'AWS Bedrock', 'LangChain', 'Prompt Chaining', 'SQS', 'Python'],
+    stack: ['Skill-Based Framework', 'Prompt Chaining', 'AWS Bedrock', 'OpenSearch', 'SQS', 'Python'],
   },
   {
     slug: 'hti-agentic-chatbot',

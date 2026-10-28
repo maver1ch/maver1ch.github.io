@@ -3,114 +3,73 @@ title: "Enterprise AI Contract Intelligence System"
 client: "FPT Software"
 period: "Jan 2026 – Feb 2026"
 role: "AI Engineer"
-tldr: "Upgraded legacy contract parsing into a skill-based framework where each skill is a self-contained Context-Funnel + Agentic-Loop (ReAct) workflow over Qdrant RAG — boosting extraction accuracy by +35%. Progressive disclosure keeps every LLM call focused; multi-model routing on AWS Bedrock with SSE streaming. Migrated from local deployments to AWS, where async batch jobs scale horizontally to thousands of documents per run with schema-validated outputs."
+tldr: "Rebuilt a mega-prompt contract parser as a skill-based framework and moved it from local servers to AWS. Each skill filters the document with Python, then runs a Claude agent loop that searches OpenSearch only when unsure: +35% extraction accuracy, ~5× fewer tokens, and async batches of thousands of contracts."
 order: 2
 stack:
-  - Qdrant
-  - AWS Bedrock
-  - LangChain
+  - Skill-Based Framework
   - Context Funnel
   - Agentic Loop (ReAct)
-  - Skill-Based Framework
-  - Python
-  - AWS S3
-  - Lambda
+  - Prompt Chaining
+  - AWS Bedrock
+  - OpenSearch
+  - AWS Lambda
   - SQS
-  - Async Batch
+  - Aurora
+  - Python
 ---
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
-import PhaseMarker from '../../components/case-study/phase-marker.astro';
 
 ## Problem
 
-The legacy contract parser was a single mega-prompt over an LLM. Each layer of that simplicity had a cost.
-
-- **Hallucinations on unfamiliar clauses** — the model invented language when it had no anchor.
-- **Inconsistent outputs across runs** — the same contract returned different fields twice in a row.
-- **Per-task accuracy invisible** — only aggregate scores existed; no way to pin a regression to "price extraction" vs "heading detection."
-- **Couldn't scale** — sync REST timed out as contract volume grew.
-- **Unstructured output** — downstream legal systems received free text, not validated schemas.
-
-<PhaseMarker label="Architecture — Production" highlight />
+- **One mega-prompt** — it hallucinated on unfamiliar clauses and returned different fields run to run.
+- **No per-task view** — a regression could not be pinned to prices or headings.
+- **Did not scale** — synchronous calls timed out as contract volume grew.
 
 <ArchitectureSection
   step="01"
   title="User Flow"
-  image="/assets/case-studies/fpt-contract/images/1-user-flow.png"
-  alt="End-to-end user flow for contract upload, extraction, and review"
+  image="/assets/case-studies/fpt-contract/images/01-user-flow.png"
+  alt="User flow: sign in, upload, processing and a ready notification in the front stage; heading, price and indexing skills in the background; a review workspace with highlighted file, chat with citations, search and export"
+  challenge="Each contract needs heavy processing, and users cannot sit and wait for it."
 >
-The full user journey, framed as human-in-the-loop. A user uploads a contract; the system extracts structured fields through a chain of skills; the user reviews and corrects the output. Each correction is captured and used to refine future extractions. The product is the extraction **plus the review experience** — not just the LLM call.
+Upload and walk away: skills run in the background, and a **notification** opens a **review workspace** — highlighted file, **chat with citations** over SSE, search and redacted export.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="02"
-  title="High-Level Architecture"
-  image="/assets/case-studies/fpt-contract/images/2-high-level-architecture.png"
-  alt="High-level system architecture for the contract intelligence platform"
+  title="Skill-Based Framework"
+  image="/assets/case-studies/fpt-contract/images/02-skill-framework.png"
+  alt="Skill registry with four independent skills; inside one skill: Context Funnel, XML prompt, an agentic loop on Claude that searches OpenSearch when unsure, and typed output"
+  highlight
+  challenge="A mega-prompt cannot be tuned for one task without breaking another."
 >
-The whole stack at a glance. The API gateway routes uploads into an **orchestrator**, which selects and runs the right Skills. Skills pull grounded context from a **Qdrant** vector store, call **Bedrock** for inference, and emit schema-validated structured output. Results land in a result store that downstream legal workflows can consume directly.
-
-Bedrock sits behind a **hub-and-spoke router** that picks the model per step — **Claude Sonnet** for heavy reasoning, **Claude Haiku** for review and rewrite, Titan for embeddings — with fallback and structured output. Chat answers **stream to the client over SSE** through a Lambda Function URL, so users see text as it is generated.
+Each capability is an **independent skill**; one request runs one skill end to end. Inside: **Context Funnel** → **agentic loop** on Claude that searches **OpenSearch** only when unsure → **Pydantic** output. **+35% accuracy.**
 </ArchitectureSection>
 
 <ArchitectureSection
   step="03"
-  title="Skill-Based Framework"
-  image="/assets/case-studies/fpt-contract/images/3-skill-framework.png"
-  alt="Skill-based extraction framework with independent skills"
-  highlight
-  challenge="A single mega-prompt doing price extraction, heading detection, and QA at once is unprompt-able. You can't tune it for one task without breaking another, and a regression is invisible until a downstream system breaks."
+  title="Anatomy of a Skill"
+  image="/assets/case-studies/fpt-contract/images/03-skill-anatomy.png"
+  alt="A skill folder: tools with parsers, detectors and agent tools; references loaded only when signals match; SKILL.md always loaded; all assembled into one XML prompt"
 >
-The core differentiator. Each capability — **price extraction, heading detection, heading review, contract QA** — is its own **independent Skill**. Each Skill is a fully self-contained workflow: it does **not** coordinate with the others and there is no shared orchestration chain — a request runs one Skill end-to-end. This is what unlocks the +35% accuracy: each Skill is small, focused, separately prompt-engineered, and individually evaluated. Adding a capability is a new Skill, not a rewrite.
+A skill is a **folder**: Python `tools/` run first, `references/` load **only when the signals match**, and `SKILL.md` always loads. The prompt carries only what this contract needs — **~5× fewer tokens**.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="04"
-  title="Skill Structure (Anatomy)"
-  image="/assets/case-studies/fpt-contract/images/4-skill-structure-anatomy.png"
-  alt="Internal anatomy of a single Skill — SKILL.md, tools/, references/, Context Funnel + Agentic Loop"
->
-What lives inside one Skill — an **on-disk folder**, not a single prompt. **`SKILL.md`** carries the base context: metadata, baseline rules, signal-conditional rules, the output schema, and few-shot examples. **`tools/`** holds **deterministic Python filters** (parse, language detect, currency detect, Qdrant lookup) that run with no LLM cost. **`references/`** holds pattern docs loaded **conditionally by signal** — only the refs that match the document. At runtime the Skill runs a **Context Funnel** (deterministic filters → focused XML prompt, ~5× fewer tokens via progressive disclosure), then an **Agentic Loop** (ReAct): the model extracts, self-evaluates confidence, calls a Qdrant `search` tool when unsure, and converges to Pydantic-validated output with citations.
-</ArchitectureSection>
-
-<ArchitectureSection
-  step="05"
-  title="RAG Pipeline"
-  image="/assets/case-studies/fpt-contract/images/5-rag-pipeline.png"
-  alt="Qdrant-backed RAG pipeline for contract clause grounding"
->
-The retrieval side. Contract language varies by jurisdiction and template; a raw LLM call hallucinates on edge cases. **Qdrant** stores embeddings of a reference clause corpus, and inside the Agentic Loop a Skill retrieves the most relevant clauses **on demand — when the model's confidence on a detection is low** — rather than on every call. Grounding the LLM in known patterns only when needed is what brings hallucination rates down on unfamiliar language without wasting tokens on the easy cases.
-</ArchitectureSection>
-
-<ArchitectureSection
-  step="06"
-  title="AWS Infrastructure"
-  image="/assets/case-studies/fpt-contract/images/6-aws-infrastructure.png"
-  alt="AWS production infrastructure: S3, Lambda, SQS, Bedrock, Qdrant"
-  highlight
->
-The system started on **local deployments**; I migrated it to AWS so heavy batch jobs **scale horizontally** instead of queuing on one machine. Production deploy is fully AWS-native. Contracts land in **S3**, which triggers **Lambda** to enqueue extraction jobs in **SQS**. Workers consume the queue, run Skills against **Qdrant** and **Bedrock**, and write structured results back to S3 and the result store. VPC and IAM hardening keep the data plane locked down. No vendor lock-in beyond AWS itself.
-</ArchitectureSection>
-
-<ArchitectureSection
-  step="07"
   title="Async Batch Jobs"
-  image="/assets/case-studies/fpt-contract/images/7-async-job-batch.png"
-  alt="Async batch processing for thousands of contracts per run"
+  image="/assets/case-studies/fpt-contract/images/04-async-batch.png"
+  alt="API Lambda enqueues to extraction and indexing SQS queues; Lambda workers run through a workflow engine to Bedrock, Aurora and OpenSearch; failures go to DLQs and a Slack alert with replay"
   highlight
-  challenge="Sync REST cannot stream thousands of contracts through extraction without timing out. One failure cannot poison the whole batch, and a worker restart cannot double-bill Bedrock."
+  challenge="Synchronous calls timed out on thousands of contracts."
 >
-Sync REST cannot stream thousands of contracts through extraction. The async batch path uses **SQS-driven workers with idempotent handlers and retries**, so a failing contract doesn't poison the batch and a worker restart doesn't double-charge Bedrock. Progress is reported back to the user as the batch advances, not just at completion.
+**SQS** queues feed **Lambda** workers; a **workflow engine** makes every step retryable and **idempotent**. Failures land in a **DLQ** with a Slack replay button.
 </ArchitectureSection>
 
 ## Outcome
 
-- **+35% extraction accuracy** vs the legacy single-prompt system.
-- Scales to **thousands of contracts per batch** via SQS + async workers.
-- **Independent, self-contained Skills** unlocked per-task evaluation and surgical regression fixes — each Skill ships and is tuned on its own.
-- **Progressive disclosure** (Context Funnel) cut each LLM call to ~5× fewer tokens — lower cost and higher accuracy from less prompt noise.
-- **On-demand RAG grounding** cut hallucination rates on unfamiliar contract language without paying retrieval cost on the easy cases.
-- **From local to AWS** — migrated to S3 + Lambda + SQS + Bedrock, so heavy batch jobs scale horizontally; no vendor lock-in beyond AWS.
-- **Multi-model routing with SSE streaming** — each step uses the right Bedrock model, and chat answers stream to the user as they are generated.
-- The framework is reusable for adjacent legal workflows: NDA review, clause comparison, obligation tracking.
+- **+35% extraction accuracy** vs the legacy single prompt.
+- **~5× fewer tokens** per LLM call through progressive disclosure.
+- **Thousands of contracts per batch** on SQS and Lambda.
+- **Each skill ships and is tested on its own.**
