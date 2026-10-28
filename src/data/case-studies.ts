@@ -29,7 +29,6 @@ export const caseStudies: CaseStudyMeta[] = [
       'Pivoted after 20–30 teacher interviews, then built AI grading for handwritten math: Mathpix OCR, Gemini step-by-step rubric grading, and a review screen with notes pinned to the handwriting. 3x faster than by hand, 1,000+ papers graded, paid for by teachers.',
     coverImage: '/assets/case-studies/wizzdom/cover.jpg',
     coverIllustration: true,
-    coverLabel: 'Product Screenshot',
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
     stack: ['React', 'TypeScript', 'AWS Lambda', 'SQS', 'RDS PostgreSQL', 'Gemini', 'Mathpix'],
   },
@@ -106,7 +105,7 @@ export const caseStudies: CaseStudyMeta[] = [
     period: 'Apr 2026 – Jun 2026',
     blurb:
       'My first 10 proposals were never opened. I looked at Upwork from the client\'s side, saw they read only ~15 words before choosing, rewrote my opener around their problem, and built demos before being hired. First client in May 2026: 3 jobs in 13 days.',
-    coverImage: '/assets/case-studies/freelance/cover.png',
+    coverImage: '/assets/case-studies/freelance/cover.jpg',
     coverIllustration: true,
     coverLabel: 'Client\'s View',
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
