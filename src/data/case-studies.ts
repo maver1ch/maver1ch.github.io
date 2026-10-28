@@ -29,13 +29,13 @@ export const caseStudies: CaseStudyMeta[] = [
     slug: 'covestro-agent-configurator',
     title: 'Agent Configurator: Self-Service Agent Platform',
     client: 'Covestro AG (via FPT Software)',
-    period: '2026 – Present',
+    period: 'Mar 2026 – Present',
     blurb:
-      'Internal web app that lets the product owner and HR see the multi-agent system on a live canvas, create prompt-and-config agents, and ship changes safely: engine-checked, versioned, reviewed by diff, rolled back in a few clicks.',
+      'Internal React app that lets the product owner and HR see the multi-agent system on a live canvas, create prompt-and-config agents, and ship changes safely: engine-checked, versioned, reviewed by diff, rolled back in a few clicks.',
     coverImage: '/assets/case-studies/agent-configurator/cover.jpg',
     coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
-    stack: ['Web App', 'Config API', 'DynamoDB', 'Entra ID SSO', 'MCP'],
+    stack: ['React', 'AWS Lambda', 'DynamoDB', 'Entra ID SSO', 'MCP'],
   },
   {
     slug: 'fpt-contract-intelligence',
