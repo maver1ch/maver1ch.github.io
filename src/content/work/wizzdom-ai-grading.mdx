@@ -1,0 +1,110 @@
+---
+title: "Wizzdom: AI Grading for Handwritten Math"
+client: "Wizzdom (EdTech startup)"
+period: "Jul 2025 – Dec 2025"
+role: "Technical Leader & Founding Member"
+tldr: "The only engineer at an EdTech startup. A student AI tutor I shipped in 6 hours found few users, so we interviewed 20–30 tutoring teachers and pivoted to what they would pay for: fast, cheap grading of handwritten math. I built the whole product, with teachers reviewing every AI grade; 1,000+ papers graded."
+order: 0
+video: "FUmXBPw-dD8"
+stack:
+  - React
+  - TypeScript
+  - Vercel
+  - Python
+  - AWS Lambda
+  - API Gateway
+  - S3
+  - SQS
+  - EventBridge
+  - RDS PostgreSQL
+  - Gemini
+  - Mathpix
+  - Zalo OA
+  - Google OAuth
+---
+
+import ArchitectureSection from '../../components/case-study/architecture-section.astro';
+import PhaseMarker from '../../components/case-study/phase-marker.astro';
+import DecisionBlock from '../../components/case-study/decision-block.astro';
+
+## Problem
+
+Tutoring teachers in Vietnam grade handwritten math by hand.
+
+- **Slow** — 2–3 hours to grade one class.
+- **Costly** — a paid assistant charges about 5,000 VND per paper.
+- **Wrong first bet** — our first product, an AI tutor for students, did not touch this pain at all.
+
+<PhaseMarker label="Phase 1 — Discovery: finding the job worth paying for" />
+
+<DecisionBlock
+  decision="Pivot from an AI tutor for students to a grading tool for teachers."
+  why="I shipped the tutor MVP in 6 hours, but adoption was low: not every student has a device, and most just want their homework done fast. Teachers feel the pain, and teachers pay."
+  tradeoff="We dropped a working product and started again with a new user."
+/>
+
+<DecisionBlock
+  decision="Cut the roadmap to one job: grade faster and cheaper."
+  why="We interviewed 20–30 tutoring teachers, in person and online. We pitched student progress analytics; they wanted to teach more students, not read more charts."
+  tradeoff="Learning paths and weak-spot analytics left the roadmap."
+/>
+
+<PhaseMarker label="Phase 2 — Product: AI grading, teacher in control" highlight />
+
+<ArchitectureSection
+  step="01"
+  title="User Flow: No New App for Students"
+  image="/assets/case-studies/wizzdom/01-user-flow.png"
+  alt="Service blueprint: the teacher signs in and creates an exam, students send photos of their work through Zalo, grading runs in background batches, the teacher reviews and approves, and results go back on Zalo"
+  challenge="Students would not install a new app, and teachers had no time to learn one."
+>
+Students send photos of their work to a **Zalo Official Account**, the chat app they already use. Grading runs in **background batches**, aiming at 20–30 minutes per class. The teacher reviews and approves, and results go **back to each student on Zalo**.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="02"
+  title="AI Grading Pipeline: Rubric per Question"
+  image="/assets/case-studies/wizzdom/02-grading-pipeline.png"
+  alt="Exam split into questions with a rubric of steps per question; handwritten papers OCR'd by Mathpix, split per question and graded by Gemini against the rubric with a confidence score; the teacher reviews and can re-grade one question"
+  highlight
+  challenge="Handwritten math, many valid methods, and credit for each step."
+>
+**Gemini** reads the exam, splits it into questions and writes a **rubric of steps** for each one. **Mathpix** OCRs the handwritten math, the work is split per question, then Gemini grades every step against the rubric, **accepting other valid methods**. Each answer gets a **confidence score**.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="03"
+  title="Teacher Review: Human in the Loop"
+  image="/assets/case-studies/wizzdom/teacher-review.jpg"
+  alt="Grading screen: rubric steps marked right or wrong on the left, the student's handwritten paper with an AI error note pinned to the wrong line on the right, and a re-grade button per question"
+  highlight
+  challenge="AI does not grade every question right, and one wrong grade costs the teacher's trust."
+>
+The teacher sees **each step marked right or wrong** next to the student's paper, with AI notes pinned to the exact line. **Low confidence** shows what to check first. The teacher can edit any score or note, draw marks, or **re-grade one question** before approving.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="04"
+  title="Report for Parents, Editable by the Teacher"
+  image="/assets/case-studies/wizzdom/student-report.jpg"
+  alt="Student report: score, questions done, right, wrong and missing, then strengths, weaknesses and how to improve, with an export to PDF button"
+>
+After approval, each student gets a written **report addressed to the parent**: the score, which questions were done, right or missing, then **strengths, weaknesses and how to improve**, each tied to a question. Teachers can **edit any line** in place and **export it as a PDF**.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="05"
+  title="System Architecture on AWS"
+  image="/assets/case-studies/wizzdom/03-aws-architecture.png"
+  alt="React app on Vercel with Google sign-in; API Gateway and Lambda for the app and the Zalo webhook; S3, SQS and worker Lambdas for batch grading with EventBridge triggers; RDS PostgreSQL; Mathpix and Gemini APIs"
+  challenge="As the only engineer, I needed a system I could run alone."
+>
+**React + TypeScript** on Vercel with Google sign-in. **API Gateway → Lambda** (Python) serves the app and the Zalo webhook. Uploads land in **S3**, and **SQS → Lambda** workers grade in event-driven batches, triggered through **EventBridge**. **RDS PostgreSQL** keeps exams, rubrics, scores and teacher edits.
+</ArchitectureSection>
+
+## Outcome
+
+- **3x faster** than grading by hand in v1, with **~70% agreement** against teacher and assistant grades as the baseline.
+- **1,000+ papers** graded at tutoring centers, with **returning users**.
+- **Teacher in control** — every grade can be checked, edited or re-graded before a student sees it.
+- **Discovery before code** — a pivot and a roadmap cut, both driven by 20–30 teacher interviews.

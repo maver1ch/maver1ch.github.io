@@ -19,6 +19,8 @@ const work = defineCollection({
       )
       .default([]),
     coverImage: z.string().optional(),
+    /** YouTube video id of a product demo, embedded above the TL;DR */
+    video: z.string().optional(),
     order: z.number().default(0),
     draft: z.boolean().default(false),
   }),

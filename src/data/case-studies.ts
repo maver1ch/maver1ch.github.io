@@ -7,12 +7,27 @@ export interface CaseStudyMeta {
   coverImage?: string;
   /** true for illustrated covers: shown at full brightness, no tint or crop-in */
   coverIllustration?: boolean;
+  /** chip text on the cover; defaults to "Architecture Preview" */
+  coverLabel?: string;
   coverGradient: string;
   stack: string[];
   draft?: boolean;
 }
 
 export const caseStudies: CaseStudyMeta[] = [
+  {
+    slug: 'wizzdom-ai-grading',
+    title: 'Wizzdom: AI Grading for Handwritten Math',
+    client: 'Wizzdom (EdTech startup)',
+    period: 'Jul 2025 – Dec 2025',
+    blurb:
+      'Only engineer at an EdTech startup. Pivoted after 20–30 teacher interviews, then built AI grading for handwritten math: Zalo submissions, Mathpix OCR, Gemini rubric grading, and a teacher review screen. 3x faster than by hand, 1,000+ papers graded.',
+    coverImage: '/assets/case-studies/wizzdom/cover.jpg',
+    coverIllustration: true,
+    coverLabel: 'Product Screenshot',
+    coverGradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+    stack: ['React', 'TypeScript', 'AWS Lambda', 'SQS', 'RDS PostgreSQL', 'Gemini', 'Mathpix'],
+  },
   {
     slug: 'fpt-hr-conversational-ai',
     title: 'HR Conversational AI Platform',
