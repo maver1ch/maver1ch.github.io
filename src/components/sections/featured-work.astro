@@ -2,7 +2,7 @@
 import { caseStudies, type CaseStudyGroup } from '../../data/case-studies.ts';
 import CaseStudyCard from '../case-study-card.astro';
 
-// Founder work first, then enterprise production, then academic research
+// Founder work first, then enterprise production, academic research, and the freelance go-to-market story last
 const blocks: { group: CaseStudyGroup; lead: string; accent: string; lede: string }[] = [
   {
     group: 'startup',
@@ -21,6 +21,12 @@ const blocks: { group: CaseStudyGroup; lead: string; accent: string; lede: strin
     lead: 'Research,',
     accent: 'measured',
     lede: 'Academic work, scored against an expert-annotated benchmark.',
+  },
+  {
+    group: 'freelance',
+    lead: 'Freelance,',
+    accent: 'client first',
+    lede: 'No network and no reviews on a crowded marketplace: how I won my first client, then delivered three jobs in a row.',
   },
 ];
 ---

@@ -1,5 +1,5 @@
-/** Home page block a case study belongs to: founder work, enterprise production, or academic research */
-export type CaseStudyGroup = 'startup' | 'production' | 'research';
+/** Home page block a case study belongs to: founder work, enterprise production, academic research, or freelance go-to-market */
+export type CaseStudyGroup = 'startup' | 'production' | 'research' | 'freelance';
 
 export interface CaseStudyMeta {
   slug: string;
@@ -97,5 +97,19 @@ export const caseStudies: CaseStudyMeta[] = [
     coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #16a34a 0%, #059669 100%)',
     stack: ['Neo4j', 'Knowledge Graph', 'Qwen3-8B', 'OLMoCR', 'FAISS', 'Cross-Encoder', 'FEVER'],
+  },
+  {
+    slug: 'freelance-first-client',
+    group: 'freelance',
+    title: 'Freelance: Winning the First Client',
+    client: 'Upwork (freelance)',
+    period: 'Feb 2026 – Jun 2026',
+    blurb:
+      'My first 10 proposals were never opened. I looked at Upwork from the client\'s side, saw they read only ~15 words before choosing, rewrote my opener around their problem, and built demos before being hired. First client in May 2026: 3 jobs in 13 days.',
+    coverImage: '/assets/case-studies/freelance/cover.png',
+    coverIllustration: true,
+    coverLabel: 'Client\'s View',
+    coverGradient: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
+    stack: ['Customer Discovery', 'Proposal Writing', 'Demo-First Selling', 'Client Care'],
   },
 ];
