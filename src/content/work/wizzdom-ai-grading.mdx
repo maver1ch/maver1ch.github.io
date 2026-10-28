@@ -3,7 +3,7 @@ title: "Wizzdom: AI Grading for Handwritten Math"
 client: "Wizzdom (EdTech startup)"
 period: "Jul 2025 – Dec 2025"
 role: "Technical Leader & Founding Member"
-tldr: "The only engineer at an EdTech startup. A student AI tutor I shipped in 6 hours found few users, so we interviewed 20–30 tutoring teachers and pivoted to what they would pay for: fast, cheap grading of handwritten math. I built the whole product, with teachers reviewing every AI grade; 1,000+ papers graded."
+tldr: "Sole engineer and founding member of an EdTech startup. My 6-hour student AI tutor found few users; 20–30 teacher interviews showed what tutors would pay for: fast, cheap grading of handwritten math. I built it end to end, with AI notes pinned to the student's handwriting and teacher approval before anything is sent. 1,000+ papers graded; teachers paid."
 order: 0
 video: "FUmXBPw-dD8"
 stack:
@@ -14,12 +14,12 @@ stack:
   - AWS Lambda
   - API Gateway
   - S3
-  - SQS
   - EventBridge
+  - SQS
   - RDS PostgreSQL
+  - SES
   - Gemini
   - Mathpix
-  - Zalo OA
   - Google OAuth
 ---
 
@@ -33,14 +33,14 @@ Tutoring teachers in Vietnam grade handwritten math by hand.
 
 - **Slow** — 2–3 hours to grade one class.
 - **Costly** — a paid assistant charges about 5,000 VND per paper.
-- **Wrong first bet** — our first product, an AI tutor for students, did not touch this pain at all.
+- **Wrong first user** — our first product, an AI tutor for students, did not touch this pain at all.
 
 <PhaseMarker label="Phase 1 — Discovery: finding the job worth paying for" />
 
 <DecisionBlock
   decision="Pivot from an AI tutor for students to a grading tool for teachers."
-  why="I shipped the tutor MVP in 6 hours, but adoption was low: not every student has a device, and most just want their homework done fast. Teachers feel the pain, and teachers pay."
-  tradeoff="We dropped a working product and started again with a new user."
+  why="I shipped the tutor MVP in 6 hours, but adoption was low: not every student has a device, and most just want their homework done fast. Teachers feel the grading pain, and teachers pay."
+  tradeoff="We dropped a working MVP and started again with a new user."
 />
 
 <DecisionBlock
@@ -51,36 +51,42 @@ Tutoring teachers in Vietnam grade handwritten math by hand.
 
 <PhaseMarker label="Phase 2 — Product: AI grading, teacher in control" highlight />
 
+<DecisionBlock
+  decision="Ship one way in first: the teacher uploads the class's papers."
+  why="Zalo OA would let students send photos from the chat they already use, and send reports straight to parents. As the only engineer, I had time for one intake path, and grading came first."
+  tradeoff="Teachers still collect papers and upload them by hand."
+/>
+
 <ArchitectureSection
   step="01"
-  title="User Flow: No New App for Students"
+  title="User Flow: The Teacher Stays in Charge"
   image="/assets/case-studies/wizzdom/01-user-flow.png"
-  alt="Service blueprint: the teacher signs in and creates an exam, students send photos of their work through Zalo, grading runs in background batches, the teacher reviews and approves, and results go back on Zalo"
-  challenge="Students would not install a new app, and teachers had no time to learn one."
+  alt="Service blueprint: the teacher signs in, creates an exam and uploads papers; grading runs in background batches and an email says when papers are ready; the teacher reviews, approves and sends a PDF report to parents; Zalo OA intake and direct reports to parents are drawn dashed as planned"
+  challenge="Grading must be fast, but the AI does not get every question right."
 >
-Students send photos of their work to a **Zalo Official Account**, the chat app they already use. Grading runs in **background batches**, aiming at 20–30 minutes per class. The teacher reviews and approves, and results go **back to each student on Zalo**.
+The teacher creates an exam and uploads the class's papers. Grading runs in **background batches**, aiming at 20–30 minutes per class, and an **email** says when papers are ready. Nothing leaves until the teacher **approves**. Students sending papers on Zalo OA, and reports going straight to parents, were planned next (dashed).
 </ArchitectureSection>
 
 <ArchitectureSection
   step="02"
-  title="AI Grading Pipeline: Rubric per Question"
+  title="AI Grading Pipeline: Rubric Once, Grade Many"
   image="/assets/case-studies/wizzdom/02-grading-pipeline.png"
-  alt="Exam split into questions with a rubric of steps per question; handwritten papers OCR'd by Mathpix, split per question and graded by Gemini against the rubric with a confidence score; the teacher reviews and can re-grade one question"
+  alt="Exam split into questions with a rubric of steps per question; each paper is OCR'd by Mathpix, Gemini Vision finds the answer blocks, a fuzzy match ties each one to its question, Gemini grades step by step with an error type, line mapping pins notes to the handwriting, and the teacher reviews, can re-grade one question, and approves"
   highlight
-  challenge="Handwritten math, many valid methods, and credit for each step."
+  challenge="Handwritten math, loose question labels, many valid methods, and credit for each step."
 >
-**Gemini** reads the exam, splits it into questions and writes a **rubric of steps** for each one. **Mathpix** OCRs the handwritten math, the work is split per question, then Gemini grades every step against the rubric, **accepting other valid methods**. Each answer gets a **confidence score**.
+**Gemini** splits the exam and writes a **rubric of steps** per question. On each paper, **Mathpix** OCRs the math, Gemini Vision finds each answer, and a **fuzzy match** ties labels like "1a" to "Câu 1.a". Gemini grades step by step, names the **error type** and accepts other valid methods. **Line mapping** pins every note to the student's line.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="03"
-  title="Teacher Review: Human in the Loop"
+  title="Teacher Review: Errors on the Handwriting"
   image="/assets/case-studies/wizzdom/teacher-review.jpg"
   alt="Grading screen: rubric steps marked right or wrong on the left, the student's handwritten paper with an AI error note pinned to the wrong line on the right, and a re-grade button per question"
   highlight
-  challenge="AI does not grade every question right, and one wrong grade costs the teacher's trust."
+  challenge="The teacher has to check AI grades fast, or the time saved is lost."
 >
-The teacher sees **each step marked right or wrong** next to the student's paper, with AI notes pinned to the exact line. **Low confidence** shows what to check first. The teacher can edit any score or note, draw marks, or **re-grade one question** before approving.
+Each step is marked **right or wrong** next to the paper, and AI notes sit **on the exact line** the student wrote. One choice, three wins: the teacher checks faster, trusts the result more, and marks the way they already do on paper. They can edit, draw, or **re-grade one question**, then approve.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -89,22 +95,26 @@ The teacher sees **each step marked right or wrong** next to the student's paper
   image="/assets/case-studies/wizzdom/student-report.jpg"
   alt="Student report: score, questions done, right, wrong and missing, then strengths, weaknesses and how to improve, with an export to PDF button"
 >
-After approval, each student gets a written **report addressed to the parent**: the score, which questions were done, right or missing, then **strengths, weaknesses and how to improve**, each tied to a question. Teachers can **edit any line** in place and **export it as a PDF**.
+Next to the grades, the teacher gets a **report written to the parent**: the score, which questions were done, right or missing, then **strengths, weaknesses and how to improve**, each tied to a question. Teachers **edit any line** in place and **export a PDF** to send. Sending it straight to parents on Zalo was my next idea.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="05"
   title="System Architecture on AWS"
   image="/assets/case-studies/wizzdom/03-aws-architecture.png"
-  alt="React app on Vercel with Google sign-in; API Gateway and Lambda for the app and the Zalo webhook; S3, SQS and worker Lambdas for batch grading with EventBridge triggers; RDS PostgreSQL; Mathpix and Gemini APIs"
-  challenge="As the only engineer, I needed a system I could run alone."
+  alt="Teacher web app on Vercel calls API Gateway and an API Lambda; uploads land in S3, EventBridge routes exam and paper uploads through SQS to a worker Lambda that calls Mathpix and Gemini; RDS PostgreSQL stores the data and SES emails the teacher; Zalo OA is drawn dashed as planned"
 >
-**React + TypeScript** on Vercel with Google sign-in. **API Gateway → Lambda** (Python) serves the app and the Zalo webhook. Uploads land in **S3**, and **SQS → Lambda** workers grade in event-driven batches, triggered through **EventBridge**. **RDS PostgreSQL** keeps exams, rubrics, scores and teacher edits.
+**React + TypeScript** on Vercel with Google sign-in. **API Gateway → Lambda** (Python) serves the web app. Every upload to **S3** is an event: **EventBridge** sends an exam to preparation and a paper to grading, through **SQS** to a worker Lambda that calls Mathpix and Gemini. **RDS PostgreSQL** keeps exams, rubrics and teacher edits; **SES** emails the teacher.
 </ArchitectureSection>
 
 ## Outcome
 
 - **3x faster** than grading by hand in v1, with **~70% agreement** against teacher and assistant grades as the baseline.
-- **1,000+ papers** graded at tutoring centers, with **returning users**.
-- **Teacher in control** — every grade can be checked, edited or re-graded before a student sees it.
+- **1,000+ papers** graded at tutoring centers, with **paying teachers** and **returning users**.
+- **Teacher in control** — nothing reaches a parent before the teacher approves.
 - **Discovery before code** — a pivot and a roadmap cut, both driven by 20–30 teacher interviews.
+
+## Next on the Roadmap (Not Shipped)
+
+- **Zalo OA intake** — students send photos in the chat they already use, so teachers stop uploading by hand.
+- **Reports straight to parents** — the approved report goes to each parent on Zalo.
