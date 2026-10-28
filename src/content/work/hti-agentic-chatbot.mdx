@@ -77,17 +77,6 @@ The **Knowledge agent** calls vector, full-text, graph and tabular tools **in pa
 **API Gateway** checks OAuth2 / JWT and an ALB feeds **ECS Fargate**, where Chat and Agent services talk over gRPC streaming. Async tool calls run on **AWS Lambda**. **Bedrock** and S3 are reached via **VPC endpoints**; data lives in OpenSearch, Neptune, DocumentDB, RDS and ElastiCache.
 </ArchitectureSection>
 
-<ArchitectureSection
-  step="05"
-  title="Serverless Ingestion Pipeline"
-  image="/assets/case-studies/hti/05-serverless-ingestion-pipeline.png"
-  alt="Serverless Ingestion Pipeline"
-  highlight
-  challenge="Ingestion had to run on AWS without a server sitting idle between uploads."
->
-An admin uploads a document to **S3**, and an **S3 event notification** triggers a **Lambda ingestion engine** in a private subnet. It creates embeddings with **Bedrock** through a VPC endpoint, then writes vectors to OpenSearch, triplets to Neptune, and content and metadata to DocumentDB.
-</ArchitectureSection>
-
 ## Outcome
 
 - **One chatbot that answers and acts** — HR knowledge from PDF, Word and Excel behind a single interface, plus RBAC-checked actions on Discord, meeting rooms, income tax and IT tickets.
