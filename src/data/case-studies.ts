@@ -103,7 +103,7 @@ export const caseStudies: CaseStudyMeta[] = [
     group: 'freelance',
     title: 'Freelance: Winning the First Client',
     client: 'Upwork (freelance)',
-    period: 'Feb 2026 – Jun 2026',
+    period: 'Apr 2026 – Jun 2026',
     blurb:
       'My first 10 proposals were never opened. I looked at Upwork from the client\'s side, saw they read only ~15 words before choosing, rewrote my opener around their problem, and built demos before being hired. First client in May 2026: 3 jobs in 13 days.',
     coverImage: '/assets/case-studies/freelance/cover.png',
