@@ -10,19 +10,6 @@ const logos = [
 
 <section class="about" id="about">
   <div class="about-inner">
-    <!-- NARRATIVE -->
-    <h2 class="section-title">
-      Production-first <span class="grad">AI engineering</span>.
-    </h2>
-
-    <p class="narrative">
-      I bridge the gap between AI research and enterprise production. Over the past
-      <strong>3+ years</strong>, I&rsquo;ve engineered scalable RAG pipelines,
-      autonomous multi-agent systems, and zero-trust LLMOps infrastructures for
-      <strong>multi-billion dollar corporations</strong>. My focus is moving AI
-      out of the notebook and into highly available, compliant AWS microservices.
-    </p>
-
     <!-- PROOF -->
     <div class="proof">
       <p class="proof-kicker">Previously built at &amp; trusted by</p>
@@ -69,38 +56,7 @@ const logos = [
     margin: 0 0 1.25rem;
   }
 
-  /* Section heading */
-  .section-title {
-    font-size: clamp(2.25rem, 5vw, 3.75rem);
-    line-height: 1.15;
-    letter-spacing: -0.035em;
-    padding-bottom: 0.05em;
-    margin: 0 0 2rem;
-  }
-  .grad {
-    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary) 60%, var(--color-accent-tertiary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Narrative paragraph */
-  .narrative {
-    max-width: 48rem;
-    margin: 0 auto;
-    font-size: clamp(1.05rem, 1.3vw, 1.2rem);
-    line-height: 1.75;
-    color: #475569; /* slate-600 */
-  }
-  .narrative strong {
-    color: var(--color-text-primary);
-    font-weight: 600;
-  }
-
   /* PROOF: logo row */
-  .proof {
-    margin-top: 5rem;
-  }
   .proof-kicker {
     font-size: 0.72rem;
     font-weight: 600;
