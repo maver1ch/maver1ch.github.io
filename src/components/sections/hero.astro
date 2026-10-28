@@ -5,11 +5,6 @@
   <div class="hero-grid-frame" aria-hidden="true"></div>
 
   <div class="hero-inner">
-    <div class="status-pill">
-      <span class="status-dot" aria-hidden="true"></span>
-      <span>Available for contract work</span>
-    </div>
-
     <div class="hero-main">
       <!-- LEFT column: identity + CTA -->
       <div class="hero-left">
@@ -50,10 +45,7 @@
               target="_blank"
               rel="noopener noreferrer"
             >
-              <svg class="cert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 2l8 3.5v5.5c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5.5z"/>
-                <path d="M9 12l2 2 4-4"/>
-              </svg>
+              <img class="cert-badge" src="/assets/badges/aws-genai-developer-professional.png" alt="AWS Certified Generative AI Developer – Professional badge" width="200" height="200" />
               <span class="cert-text">
                 <span class="cert-name">AWS Certified GenAI Developer</span>
                 <span class="cert-level">Professional &middot; AIP-C01</span>
@@ -67,10 +59,7 @@
               target="_blank"
               rel="noopener noreferrer"
             >
-              <svg class="cert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 2l8 3.5v5.5c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5.5z"/>
-                <path d="M9 12l2 2 4-4"/>
-              </svg>
+              <img class="cert-badge" src="/assets/badges/aws-solutions-architect-associate.png" alt="AWS Certified Solutions Architect – Associate badge" width="200" height="200" />
               <span class="cert-text">
                 <span class="cert-name">AWS Certified Solutions Architect</span>
                 <span class="cert-level">Associate &middot; SAA-C03</span>
@@ -116,33 +105,6 @@
     width: 100%;
     margin: 0 auto;
     animation: fade-in-up 700ms var(--ease-premium) both;
-  }
-
-  /* Status pill — top center */
-  .status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.9rem;
-    border-radius: var(--radius-pill);
-    background: rgba(34, 197, 94, 0.10);
-    border: 1px solid rgba(34, 197, 94, 0.22);
-    color: #15803d;
-    font-size: 0.82rem;
-    font-weight: 600;
-    margin-bottom: 2.5rem;
-  }
-  .status-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
-    animation: pulse-dot 2s var(--ease-out) infinite;
-  }
-  @keyframes pulse-dot {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22); }
-    50%      { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.08); }
   }
 
   /* Two-column main row */
@@ -285,9 +247,16 @@
     border-color: rgba(255, 153, 0, 0.45);
     box-shadow: var(--shadow-sm);
   }
-  .cert-icon {
-    color: #ff9900;
+  /* Official AWS badge art; the whole chip links to the Credly verification page */
+  .cert-badge {
+    width: 64px;
+    height: 64px;
     flex-shrink: 0;
+    object-fit: contain;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  .cert-chip:hover .cert-badge {
+    transform: scale(1.06);
   }
   .cert-text {
     display: flex;
