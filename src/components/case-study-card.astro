@@ -65,13 +65,6 @@ const delayMs = index * 90;
     <div class="card-stack">
       {study.stack.slice(0, 7).map((s) => <StackPill label={s} />)}
     </div>
-
-    <a class="card-link" href={`/work/${study.slug}/`}>
-      <span>Read the case study</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M5 12h14M13 6l6 6-6 6"/>
-      </svg>
-    </a>
   </div>
 </article>
 
@@ -338,29 +331,8 @@ const delayMs = index * 90;
     display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
-    margin-bottom: 1.5rem;
   }
 
-  .card-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--color-accent-primary);
-    font-weight: 600;
-    font-family: var(--font-heading);
-    font-size: 0.95rem;
-    letter-spacing: 0.01em;
-    align-self: flex-start;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid transparent;
-    transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
-  }
-  .card-link svg { transition: transform var(--duration-base) var(--ease-spring); }
-  .card-link:hover {
-    color: var(--color-accent-secondary);
-    border-color: currentColor;
-  }
-  .card-link:hover svg { transform: translateX(6px); }
 
   @media (max-width: 900px) {
     .case-card,
