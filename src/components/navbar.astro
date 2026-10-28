@@ -19,6 +19,12 @@ const navLinks = [
         <span>{label}</span>
       </a>
     ))}
+    <a href="/CV_DamHongPhuc_AI_SA.pdf" class="nav-cta" target="_blank" rel="noopener noreferrer">
+      Resume
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 17L17 7M17 7H8M17 7V16"/>
+      </svg>
+    </a>
   </div>
 </nav>
 
@@ -135,6 +141,32 @@ const navLinks = [
   .nav-link.is-active::after {
     transform: translateX(-50%) scale(1);
   }
+
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1.05rem;
+    margin-left: 0.5rem;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 14px -4px rgba(37, 99, 235, 0.45);
+    transition:
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .nav-cta svg { transition: transform var(--duration-fast) var(--ease-spring); }
+
+  .nav-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -6px rgba(37, 99, 235, 0.55);
+  }
+  .nav-cta:hover svg { transform: translate(2px, -2px); }
+  .nav-cta:active { transform: translateY(0) scale(0.97); }
 
   @media (max-width: 640px) {
     .navbar { padding: 0.7rem 5%; }
