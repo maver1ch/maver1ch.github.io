@@ -1,0 +1,76 @@
+---
+title: "Agent Configurator: Self-Service Agent Platform for HR"
+client: "Covestro AG (via FPT Software)"
+period: "2026 – Present"
+role: "AI Solution Architect"
+tldr: "HR wanted to try more AI use cases — CV screening, AI-assisted performance reviews — but only a developer could change an agent. I designed and built Agent Configurator: a web app where the product owner and HR see the multi-agent system, create prompt-and-config agents, and ship changes safely, with validation, versioning, diff review and fast rollback."
+order: 2
+stack:
+  - Web App
+  - Config API
+  - DynamoDB
+  - Microsoft Entra ID SSO
+  - LangGraph
+  - MCP
+---
+
+import ArchitectureSection from '../../components/case-study/architecture-section.astro';
+import PhaseMarker from '../../components/case-study/phase-marker.astro';
+import DecisionBlock from '../../components/case-study/decision-block.astro';
+
+## Problem
+
+The HR agent platform was built so that each agent's behaviour — prompt, tools, handoffs, model — is **configuration, not code**: the engine reads it from DynamoDB on every message. That made changes fast, but only for developers.
+
+- **New use cases kept coming** — CV screening, AI-assisted performance reviews — and every experiment had to wait for a developer.
+- **Changes went through the CLI** — a developer edited JSON by hand, wrote it to the database, and moved the "active" flag manually. The product owner wrote the prompt text but could not put it into the system.
+- **No safety net** — no validation, no review, no readable history, and rollback meant finding a backup file on someone's laptop. Because config takes effect on the next message, a wrong change reached **every user at once**.
+- **It had already gone wrong twice** — an agent given ticketing tools without matching prompt rules created a ticket without asking the user to confirm; a copy between environments turned an empty value into `true`, and every chat turn failed until it was fixed.
+- **Nobody could see the system** — which agent hands off to which, which tools each one may call, which handoffs were broken.
+
+<DecisionBlock
+  decision="Build a platform, not a one-off fix: a safe space where non-technical people can understand the agents and change them on their own."
+  why="Each new HR use case is a new agent or skill. If every one needs a developer, the developer becomes the bottleneck and the business stops experimenting."
+  tradeoff="Phase 1 covers prompt-and-config changes only. Tool calls, third-party apps and databases still go through code review and are being opened up step by step."
+/>
+
+<PhaseMarker label="Phase 1 — Make the system visible, then safe to change" highlight />
+
+<ArchitectureSection
+  step="01"
+  title="Agent Canvas: See the Whole System"
+  image="/assets/case-studies/agent-configurator/01-agent-canvas.jpg"
+  alt="Agent Canvas: every agent and MCP service as a card, with purple lines for handoffs and dashed coloured lines for tool use"
+  highlight
+  challenge="The product owner and HR could not picture a multi-agent system. Words like 'handoff' or 'MCP service' meant nothing without a picture."
+>
+The first page is a **map of the running system**. Every agent and every **MCP service** (Workday, ServiceNow, knowledge, learning…) is a card. Purple lines are **handoffs** between agents; dashed lines show which **tools** each agent uses; a red dotted line is a broken handoff that would fail at run time. People can **edit on the map**: drag from one agent to another to create a handoff (and write when it should happen), or drag onto a service to tick the tools an agent may call — none are ticked by default. Edits become **drafts**; the Canvas never puts anything live.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="02"
+  title="Edit as a New Version, Checked Like the Engine"
+  image="/assets/case-studies/agent-configurator/02-edit-as-new-version.jpg"
+  alt="Agent edit form: tools, handoffs, handoff messages, follow-up suggestions and model settings, each with a plain-language label and one-line help"
+>
+Nobody edits JSON by hand anymore. Every field has a **plain-language name and a one-line explanation**; the tool list comes **live from the engine**, so only tools that really exist can be picked; a change note is required. On every save the config is checked with **the same rules the engine uses**: errors (empty prompt, handoff without a reason, handoff to a missing agent) **block the save**, warnings (unknown model, handoff to an inactive agent) are shown but don't. Saving **only appends a new version** — nothing is ever overwritten or deleted — and if someone saved in the meantime, the user gets a **conflict** instead of a silent overwrite.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="03"
+  title="Diff, Activate, Roll Back"
+  image="/assets/case-studies/agent-configurator/03-agent-versions.jpg"
+  alt="Agents list with the active version, number of versions, description and last change for each agent"
+  highlight
+  challenge="A config change has no pull request and no CI. Whatever is activated reaches every employee on the next message."
+>
+Each agent has versions that are **active, draft or history**. A **diff** — prompt line by line, tools and handoffs added or removed — is the review step before going live. **Activate** first test-reads the version exactly as the engine would and refuses one it cannot load, then moves the active flag in **one atomic step**, so there are never two active versions or none, then verifies and logs who changed what. On production the user must **type the version number** to confirm. **Rollback is just activating an older version** — a few clicks, effective on the next message. Sign-in is **company SSO**, so every "saved by" and "activated by" comes from the login, not from a text field, and point-in-time recovery covers the worst case.
+</ArchitectureSection>
+
+## Outcome
+
+- **Live in production since October 2026**, replacing CLI writes; the old script is kept only as a break-glass tool.
+- **The product owner and HR team understand the multi-agent system** — which agents exist, how they hand off, and what each MCP service offers.
+- **Non-technical users create simple skills themselves** — prompt-and-config agents they can try on DEV and then ship, without waiting for a developer.
+- **Both past failure types are blocked**: a config the engine cannot read can't be saved or activated, and the diff shows every newly added tool before activation.
+- **Next phases** open up tool calls, third-party apps and databases step by step, on the same safety rails.
