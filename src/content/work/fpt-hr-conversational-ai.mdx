@@ -8,6 +8,7 @@ order: 1
 stack:
   - LangGraph
   - MCP
+  - React
   - AWS Bedrock
   - OpenSearch Serverless
   - ElastiCache
@@ -22,6 +23,7 @@ stack:
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
 import PhaseMarker from '../../components/case-study/phase-marker.astro';
+import DecisionBlock from '../../components/case-study/decision-block.astro';
 
 ## Problem
 
@@ -138,10 +140,50 @@ Every request already passed through the monolith's chat Lambda, so the switch w
 A spike settled it: **move, don't rebuild**. Stateful resources got `Retain`, consumers read ids from config, and every window had abort criteria. When the first window was **aborted**, **16 probe refactors** isolated an undocumented CloudFormation rule, and a "touch" step became standard. The next window moved **11 resources in 45 seconds** — **zero id changes, no re-ingestion**.
 </ArchitectureSection>
 
-<PhaseMarker label="Across both phases — delivery pipeline" />
+<PhaseMarker label="Phase 3 — Agent Configurator: putting the business in control" highlight />
+
+<DecisionBlock
+  decision="Build a platform, not one-off fixes: a safe space where the product owner and HR can understand the agents and change them on their own."
+  why="HR kept bringing new use cases — CV screening, AI-assisted performance reviews. If every experiment needs a developer, the developer becomes the bottleneck and the business stops experimenting."
+  tradeoff="Phase 1 covers prompt-and-config changes only. Tool calls, third-party apps and databases still go through code review and open up step by step."
+/>
 
 <ArchitectureSection
-  step="11"
+  step="12"
+  title="Agent Canvas: See the Whole System"
+  image="/assets/case-studies/agent-configurator/01-agent-canvas.jpg"
+  alt="Agent Canvas: every agent and MCP service as a card, with purple lines for handoffs and dashed coloured lines for tool use"
+  highlight
+  challenge="Agent behaviour is configuration the engine reads on every message, but only a developer could change it, by writing JSON straight to the database. Nobody else could see which agent hands off to which, or what an MCP service is."
+>
+I built **Agent Configurator**, an internal **React** app with an API on **AWS Lambda** and company **SSO**. Its first page is a **map of the running system**: every agent and every MCP service (Workday, ServiceNow, knowledge, learning…) is a card; purple lines are **handoffs**, dashed lines show which **tools** each agent uses, and a red dotted line is a broken handoff. People **edit on the map** — drag between agents to create a handoff (and write when it should happen), drag onto a service to tick the tools an agent may call, none ticked by default. Edits become **drafts**; the Canvas never puts anything live.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="13"
+  title="Edit as a New Version, Checked Like the Engine"
+  image="/assets/case-studies/agent-configurator/02-edit-as-new-version.jpg"
+  alt="Agent edit form: tools, handoffs, handoff messages, follow-up suggestions and model settings, each with a plain-language label and one-line help"
+  challenge="Hand-edited config had already gone wrong twice: an agent given ticketing tools without matching prompt rules created a ticket without asking the user, and a copy between environments turned an empty value into true, so every chat turn failed."
+>
+Nobody edits JSON by hand anymore. Every field has a **plain-language name and a one-line explanation**; the tool list comes **live from the engine**, so only real tools can be picked; a change note is required. Each save is checked with **the same rules the engine uses**: errors block the save, warnings are shown but don't. Saving **only appends a new version** — nothing is overwritten or deleted — and a concurrent save shows a **conflict** instead of a silent overwrite.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="14"
+  title="Diff, Activate, Roll Back"
+  image="/assets/case-studies/agent-configurator/03-agent-versions.jpg"
+  alt="Agents list with the active version, number of versions, description and last change for each agent"
+  highlight
+  challenge="A config change has no pull request and no CI. Whatever is activated reaches every employee on the next message."
+>
+Each agent has versions that are **active, draft or history**. A **diff** — prompt line by line, tools and handoffs added or removed — is the review step before going live. **Activate** test-reads the version exactly as the engine would, then moves the active flag in **one atomic step** and logs who changed what; on production the user must **type the version number** to confirm. **Rollback is activating an older version**, effective on the next message. Names in the history come from the SSO login, not a text field.
+</ArchitectureSection>
+
+<PhaseMarker label="Across all phases — delivery pipeline" />
+
+<ArchitectureSection
+  step="15"
   title="Delivery Pipeline: CI/CD, IaC & LLM Regression"
   image="/assets/case-studies/covestro/images/11-delivery-pipeline.png"
   alt="Before: merging to main deployed straight to production with no tests or infra diff. After: pull-request CI with coverage, a cdk diff gate, DEV deploy through OIDC with smoke tests, an LLM regression suite, and a manual production dispatch"
@@ -156,4 +198,4 @@ At takeover, merging to `main` was the production deploy, with no unit tests and
 - **HR-only knowledge base with zero leakage** — fail-closed filter at a single choke point, rolled out in an order that never opened a window.
 - **Zero-downtime migration** to a multi-service agent platform — parity 90/90 and latency 18.6 → 6.3 s proven first, cutover behind an SSM switch with a rehearsed rollback.
 - **Stateful data plane moved between CDK apps with zero id changes** and no re-ingestion, plus an undocumented CloudFormation constraint turned into a reusable procedure.
-- **Next: putting the business in control** — an internal web app where the product owner and HR change agents safely on their own. See [Agent Configurator](/work/covestro-agent-configurator/).
+- **Business in control** — since October 2026 the product owner and HR team use Agent Configurator to understand the agents and MCP services and to create simple prompt-and-config skills themselves; the old CLI path is kept only for emergencies.

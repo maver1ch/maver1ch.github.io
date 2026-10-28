@@ -19,23 +19,11 @@ export const caseStudies: CaseStudyMeta[] = [
     client: 'Covestro AG (via FPT Software)',
     period: 'Mar 2026 – Present',
     blurb:
-      'Revived and then replaced a production HR assistant for a Fortune 500 chemicals corporation: measured baseline, semantic cache, HR-only knowledge base, then a zero-downtime move to an MCP-based agent platform on AWS.',
+      'Revived and then replaced a production HR assistant for a Fortune 500 chemicals corporation: measured baseline, semantic cache, HR-only knowledge base, then a zero-downtime move to an MCP-based agent platform on AWS, plus a React app that lets HR change agents safely.',
     coverImage: '/assets/case-studies/covestro/cover.jpg',
     coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)',
-    stack: ['LangGraph', 'MCP', 'AWS Bedrock', 'OpenSearch Serverless', 'AWS CDK', 'Langfuse'],
-  },
-  {
-    slug: 'covestro-agent-configurator',
-    title: 'Agent Configurator: Self-Service Agent Platform',
-    client: 'Covestro AG (via FPT Software)',
-    period: 'Mar 2026 – Present',
-    blurb:
-      'Internal React app that lets the product owner and HR see the multi-agent system on a live canvas, create prompt-and-config agents, and ship changes safely: engine-checked, versioned, reviewed by diff, rolled back in a few clicks.',
-    coverImage: '/assets/case-studies/agent-configurator/cover.jpg',
-    coverIllustration: true,
-    coverGradient: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
-    stack: ['React', 'AWS Lambda', 'DynamoDB', 'Entra ID SSO', 'MCP'],
+    stack: ['LangGraph', 'MCP', 'AWS Bedrock', 'OpenSearch Serverless', 'React', 'AWS CDK'],
   },
   {
     slug: 'fpt-contract-intelligence',
