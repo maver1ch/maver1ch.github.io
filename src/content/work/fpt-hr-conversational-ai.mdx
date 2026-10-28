@@ -22,7 +22,6 @@ stack:
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
 import PhaseMarker from '../../components/case-study/phase-marker.astro';
-import OutcomeMetrics from '../../components/case-study/outcome-metrics.astro';
 
 ## Problem
 
@@ -151,19 +150,6 @@ At takeover, merging to `main` was the production deploy, with no unit tests and
 </ArchitectureSection>
 
 ## Outcome
-
-<OutcomeMetrics
-  metrics={[
-    { value: '19', label: 'production releases in Phase 1' },
-    { value: '~150 ms', label: 'semantic-cache hit, 0 tokens' },
-    { value: '0', label: 'restricted references leaked to non-HR' },
-    { value: '90 / 90', label: 'quality parity before cutover' },
-    { value: '6.3 s', label: 'first-content P50, down from 18.6 s (legacy 7.7 s)' },
-    { value: '34.8 s', label: 'rehearsed rollback' },
-    { value: '0', label: 'resource ids changed in the data-plane move' },
-    { value: '11', label: 'stateful resources moved in one 45 s refactor' },
-  ]}
-/>
 
 - **From guesswork to measurement** — a production assistant nobody could observe became one with a baseline, tracing, and a backlog chosen by numbers; **19 production releases** as sole developer.
 - **Repeat questions in ~150 ms** from a semantic cache that stays inside the user's permission scope.
