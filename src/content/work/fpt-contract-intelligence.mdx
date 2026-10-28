@@ -3,7 +3,7 @@ title: "Enterprise AI Contract Intelligence System"
 client: "FPT Software"
 period: "Feb 2026 – Jun 2026"
 role: "AI Engineer"
-tldr: "Upgraded legacy contract parsing into a skill-based framework where each skill is a self-contained Context-Funnel + Agentic-Loop (ReAct) workflow over Qdrant RAG — boosting extraction accuracy by +35%. Progressive disclosure keeps every LLM call focused; async batch jobs on AWS scale to thousands of documents per run with schema-validated outputs."
+tldr: "Upgraded legacy contract parsing into a skill-based framework where each skill is a self-contained Context-Funnel + Agentic-Loop (ReAct) workflow over Qdrant RAG — boosting extraction accuracy by +35%. Progressive disclosure keeps every LLM call focused; multi-model routing on AWS Bedrock with SSE streaming. Migrated from local deployments to AWS, where async batch jobs scale horizontally to thousands of documents per run with schema-validated outputs."
 order: 2
 stack:
   - Qdrant
@@ -50,6 +50,8 @@ The full user journey, framed as human-in-the-loop. A user uploads a contract; t
   alt="High-level system architecture for the contract intelligence platform"
 >
 The whole stack at a glance. The API gateway routes uploads into an **orchestrator**, which selects and runs the right Skills. Skills pull grounded context from a **Qdrant** vector store, call **Bedrock** for inference, and emit schema-validated structured output. Results land in a result store that downstream legal workflows can consume directly.
+
+Bedrock sits behind a **hub-and-spoke router** that picks the model per step — **Claude Sonnet** for heavy reasoning, **Claude Haiku** for review and rewrite, Titan for embeddings — with fallback and structured output. Chat answers **stream to the client over SSE** through a Lambda Function URL, so users see text as it is generated.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -88,7 +90,7 @@ The retrieval side. Contract language varies by jurisdiction and template; a raw
   alt="AWS production infrastructure: S3, Lambda, SQS, Bedrock, Qdrant"
   highlight
 >
-Production deploy is fully AWS-native. Contracts land in **S3**, which triggers **Lambda** to enqueue extraction jobs in **SQS**. Workers consume the queue, run Skills against **Qdrant** and **Bedrock**, and write structured results back to S3 and the result store. VPC and IAM hardening keep the data plane locked down. No vendor lock-in beyond AWS itself.
+The system started on **local deployments**; I migrated it to AWS so heavy batch jobs **scale horizontally** instead of queuing on one machine. Production deploy is fully AWS-native. Contracts land in **S3**, which triggers **Lambda** to enqueue extraction jobs in **SQS**. Workers consume the queue, run Skills against **Qdrant** and **Bedrock**, and write structured results back to S3 and the result store. VPC and IAM hardening keep the data plane locked down. No vendor lock-in beyond AWS itself.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -109,5 +111,6 @@ Sync REST cannot stream thousands of contracts through extraction. The async bat
 - **Independent, self-contained Skills** unlocked per-task evaluation and surgical regression fixes — each Skill ships and is tuned on its own.
 - **Progressive disclosure** (Context Funnel) cut each LLM call to ~5× fewer tokens — lower cost and higher accuracy from less prompt noise.
 - **On-demand RAG grounding** cut hallucination rates on unfamiliar contract language without paying retrieval cost on the easy cases.
-- **AWS-native deploy** on S3 + Lambda + SQS + Bedrock + Qdrant — no vendor lock-in beyond AWS.
+- **From local to AWS** — migrated to S3 + Lambda + SQS + Bedrock, so heavy batch jobs scale horizontally; no vendor lock-in beyond AWS.
+- **Multi-model routing with SSE streaming** — each step uses the right Bedrock model, and chat answers stream to the user as they are generated.
 - The framework is reusable for adjacent legal workflows: NDA review, clause comparison, obligation tracking.

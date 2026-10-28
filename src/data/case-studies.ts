@@ -39,15 +39,15 @@ export const caseStudies: CaseStudyMeta[] = [
   },
   {
     slug: 'hti-agentic-chatbot',
-    title: 'Enterprise HR Agentic Chatbot',
+    title: 'Enterprise Agentic Chatbot & LLMOps Infrastructure',
     client: 'HTI Group',
     period: 'Apr 2025 – Dec 2025',
     blurb:
-      'LangGraph multi-agent system over hierarchical semantic chunks. AWS Lambda + ECS Fargate. Distributed observability via Langfuse. POC to enterprise production.',
+      'Supervisor + Knowledge, Action and ChitChat agents on LangGraph, each with its own ReAct loop. Docling parsing, hierarchical semantic chunking and a knowledge graph. Local POC to AWS production on ECS Fargate, Lambda and Bedrock.',
     coverImage: '/assets/case-studies/hti/cover.jpg',
     coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
-    stack: ['LangGraph', 'LlamaIndex', 'AWS Lambda', 'ECS Fargate', 'Langfuse', 'AWS CDK', 'Qdrant'],
+    stack: ['LangGraph', 'LlamaIndex', 'Docling', 'Neo4j', 'ECS Fargate', 'AWS Lambda', 'AWS CDK'],
   },
   {
     slug: 'hg-chatbot',

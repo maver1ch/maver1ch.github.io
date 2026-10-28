@@ -1,21 +1,23 @@
 ---
-title: "Enterprise HR Agentic Chatbot"
+title: "Enterprise Agentic Chatbot & LLMOps Infrastructure"
 client: "HTI Group"
 period: "Apr 2025 – Dec 2025"
 role: "AI Engineer & LLMOps"
-tldr: "Multi-agent HR chatbot built on LangGraph + LlamaIndex with the ReAct pattern, hierarchical semantic chunking, and hybrid retrieval (Vector + Full-text + Graph + Pandas). Migrated from local POC to production AWS infrastructure with Lambda, ECS Fargate, and distributed Langfuse observability. CI/CD via AWS CDK in TypeScript."
+tldr: "Multi-agent chatbot on LangGraph + LlamaIndex: a supervisor routes each query to Knowledge, Action or ChitChat agents, each running its own ReAct loop. Agentic retrieval over vector, full-text, graph and tabular tools; RBAC-checked actions on external APIs; Docling parsing, hierarchical semantic chunking and an LLM-built knowledge graph for ingestion. Taken from local POC to AWS production on ECS Fargate, Lambda and Bedrock, with CI/CD via AWS CDK."
 order: 3
 stack:
   - LangGraph
   - LlamaIndex
   - ReAct Pattern
-  - AWS Lambda
-  - ECS Fargate
-  - AWS CDK
-  - TypeScript
-  - Langfuse
+  - FastAPI
+  - Docling
+  - BGE-M3
   - Qdrant
-  - Hierarchical Chunking
+  - Neo4j
+  - ECS Fargate
+  - AWS Lambda
+  - AWS Bedrock
+  - AWS CDK
 ---
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
@@ -23,12 +25,12 @@ import PhaseMarker from '../../components/case-study/phase-marker.astro';
 
 ## Problem
 
-HTI Group needed a single chatbot that could carry the weight of fragmented HR institutional knowledge — and then survive the jump from quick demo to enterprise production.
+HTI Group needed one chatbot that could both answer from scattered HR knowledge and act for employees — and then survive the jump from quick demo to enterprise production.
 
-- **Fragmented knowledge** spread across Excel, Docs, Markdown, PowerPoint, PNG, and CSV sources.
+- **Fragmented knowledge** spread across PDF, Word and Excel files, where headers, paragraphs and tables carry different meaning.
 - **Off-the-shelf RAG broke down** on complex policy queries that crossed multiple sub-domains: leave, payroll, benefits, tooling.
-- **POC-to-production was non-negotiable**: the agent layer had to evolve to AWS without a rewrite.
-- **Observability gap**: multi-agent systems fail in subtle ways that unit tests miss.
+- **Answers were not enough**: staff also wanted the bot to do things — book a meeting room, calculate income tax, open an IT ticket — and only when they had the right permission.
+- **POC-to-production was non-negotiable**: the agent layer had to move to AWS without a rewrite.
 
 <PhaseMarker label="Phase 1 — Proof of Concept" />
 
@@ -38,7 +40,7 @@ HTI Group needed a single chatbot that could carry the weight of fragmented HR i
   image="/assets/case-studies/hti/01-high-level-architecture.png"
   alt="High-Level System Architecture"
 >
-The foundation of the HR Chatbot. This diagram details the core interaction flow between the front-end user interfaces, the centralized API gateways, and the underlying AI knowledge engines before scaling up.
+Every request enters through a **FastAPI gateway**, picks up its **session memory**, and reaches a **router agent** that hands it to one of three specialists — **Knowledge**, **Action** or **ChitChat** — each running its own **ReAct loop** of reasoning and tool calls. In the POC the Knowledge agent's tools sit on **Qdrant** (vectors), **MongoDB** (full-text and metadata), **Neo4j** (knowledge graph) and the HR files themselves (tabular data). Whichever agent answers, the user gets one unified response.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -47,7 +49,7 @@ The foundation of the HR Chatbot. This diagram details the core interaction flow
   image="/assets/case-studies/hti/02-multi-agent-router.png"
   alt="Multi-Agent Router"
 >
-The brain of the chatbot. Using the **ReAct methodology**, queries are intercepted, understood, and dynamically routed to specialized sub-agents. This lets the bot handle complex HR policies, leave requests, and payroll inquiries with high accuracy — and makes each sub-agent independently testable and observable.
+The brain of the chatbot. The **Knowledge agent** decides which sources to query, calls **vector, full-text, graph and tabular tools in parallel**, and checks whether the context is sufficient — if not, it loops back and searches again before writing the final answer. The **Action agent** first checks that all parameters are present (and asks the user for any that are missing), then runs an **RBAC check** before calling external APIs: summarize a **Discord** thread, book or check a **meeting room**, calculate **income tax**, or open an **IT support ticket**. A denied check returns an authorization error, never a silent action. The **ChitChat agent** handles general conversation with a web search tool. Splitting the work this way makes each agent independently testable.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -56,7 +58,7 @@ The brain of the chatbot. Using the **ReAct methodology**, queries are intercept
   image="/assets/case-studies/hti/03-data-ingestion-pipeline.png"
   alt="Data Ingestion Pipeline"
 >
-A robust offline pipeline that automatically ingests, chunks, and maps unstructured HR documents into a high-dimensional vector space for semantic retrieval. Uses **Hierarchical Semantic Chunking** with Auto Merge, plus LLM Contextualization for child chunks so each retrieval unit carries its surrounding context.
+An offline pipeline in four stages. **Docling** parses the layout of PDF, Word and Excel files into headers, paragraphs and tables. A semantic merger builds **parent chunks** for context, which a recursive splitter cuts into small **leaf chunks** for search — **hierarchical semantic chunking**. An **LLM context injector** then rewrites each leaf chunk with the context of its parent, so every retrieval unit still makes sense on its own, while an **LLM graph extractor** turns parent chunks into subject–predicate–object **triplets** for Neo4j. Finally, leaf chunks are embedded with **BGE-M3** into Qdrant, and content plus metadata go to MongoDB for full-text search.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 2 — Enterprise Production" highlight />
@@ -67,9 +69,9 @@ A robust offline pipeline that automatically ingests, chunks, and maps unstructu
   image="/assets/case-studies/hti/04-aws-migration-architecture.png"
   alt="AWS Cloud Migration Architecture"
   highlight
-  challenge="The POC ran on a single box. Enterprise needed 99.9% uptime, auto-scaling, VPC isolation, and a clean split between short-lived tool calls and long-running agent workers — without rewriting the agent layer."
+  challenge="The POC ran on a single box with local databases. Production needed private networking, managed data stores, and a clean split between long-running agent work and short tool calls — without rewriting the agent layer."
 >
-Transitioning from local/on-prem POC to AWS. Leveraging fully managed services and container orchestration to reach enterprise targets: **99.9% uptime, auto-scaling**, and security inside a VPC. Compute split between **AWS Lambda** (event handlers, short-lived tools) and **ECS Fargate** (long-running agent workers).
+Clients call **API Gateway** (OAuth2 / JWT validation) over SSE REST; traffic goes through an ALB into **ECS Fargate**, where a **Chat Service** (FastAPI gateway) and an **Agent Service** (LangGraph multi-agent) talk over **gRPC streaming**. Short, async tool invocations run on **AWS Lambda**. Inference goes to **Amazon Bedrock (Claude Sonnet)** through an interface **VPC endpoint**, and S3 through a gateway endpoint, so nothing leaves the private network. The POC stores map to managed services — OpenSearch for vectors, Neptune for the knowledge graph, DocumentDB for metadata — plus RDS PostgreSQL for relational data and ElastiCache for sessions and caching.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -79,13 +81,13 @@ Transitioning from local/on-prem POC to AWS. Leveraging fully managed services a
   alt="Serverless Ingestion Pipeline"
   highlight
 >
-An alternative, highly optimized ingestion architecture using **serverless cloud functions**. Designed for event-driven document processing — minimizes idle compute cost and maximizes real-time scalability during data upload spikes. Useful when ingestion is bursty and unpredictable rather than steady-state.
+On AWS, ingestion is **event-driven and serverless**. An admin uploads a document to **S3**; the **S3 event notification** triggers a **Lambda ingestion engine** in a private subnet. It generates embeddings with a **Bedrock** embedding model through a VPC endpoint, then indexes vectors in **OpenSearch**, loads triplets into **Neptune**, and saves content and metadata to **DocumentDB**. No compute sits idle between uploads, and bursts of new documents scale out on their own.
 </ArchitectureSection>
 
 ## Outcome
 
-- **Unified institutional knowledge** across 6+ document formats behind one chatbot interface.
-- **Production-ready on AWS** with two deployment topologies (Lambda + ECS Fargate, plus a serverless ingestion alternative).
-- **Hallucination-free outputs** via Langfuse-traced agent trajectories and per-step evaluation.
+- **One chatbot that answers and acts** — HR knowledge from PDF, Word and Excel behind a single interface, plus RBAC-checked actions on Discord, meeting rooms, income tax and IT tickets.
+- **POC to AWS production without rewriting the agents** — the same LangGraph agents now run on ECS Fargate and Lambda, with local stores swapped for managed AWS services.
+- **Private by design** — Bedrock and S3 reached only through VPC endpoints; OAuth2 / JWT checked at the API Gateway.
+- **Repeatable delivery** with CI/CD via AWS CDK.
 - **Reusable agent and infra patterns** that informed downstream projects at FPT Software.
-- **Tool calling to external services** (Discord, Google Calendar) integrated cleanly through the agent framework.
