@@ -63,17 +63,6 @@ Employees ask through **web or mobile chat**. The AI brain searches **PDF, Docx,
 **Hybrid search** runs Qdrant dense and MongoDB keyword in parallel; results are fused, deduped and reranked by a **Cross-Encoder**. **Auto-merge** promotes to the parent chunk when many siblings hit. A **multi-LLM router** picks GPT or Gemini by query type and cost.
 </ArchitectureSection>
 
-<ArchitectureSection
-  step="04"
-  title="On-Premise AIOps — Model Layer"
-  image="/assets/case-studies/hg-chatbot/04-on-premise-aiops-model-layer.png"
-  alt="On-premise AIOps: self-hosted application, data stores, and observability with external LLM APIs only"
-  highlight
-  challenge="Compliance kept the stack on-premise; only LLM calls could go outside."
->
-The app layer, **Ray Serve** models (BGE-M3, cross-encoder) and data stores (Qdrant, MongoDB) all run locally. Observability is one stack: **Langfuse** for LLM traces and cost, **Prometheus** for CPU/GPU/latency, **Grafana** for dashboards and alerts. On-prem limits forced careful resource budgeting and model versioning.
-</ArchitectureSection>
-
 ## Outcome
 
 - **Trusted answers in seconds** — grounded responses with source citations across 5+ document formats.
