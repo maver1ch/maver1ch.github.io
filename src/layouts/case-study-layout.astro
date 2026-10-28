@@ -82,49 +82,24 @@ const seoDescription =
 
   <!-- Image lightbox (shared, single instance) -->
   <div id="image-lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="lightbox-stage">
+      <img class="lightbox-img" alt="" draggable="false" />
+    </div>
     <button class="lightbox-close" aria-label="Close image">×</button>
-    <img class="lightbox-img" alt="" />
+    <div class="lightbox-toolbar">
+      <button type="button" data-zoom-out aria-label="Zoom out">−</button>
+      <span class="lightbox-level" aria-live="polite">100%</span>
+      <button type="button" data-zoom-in aria-label="Zoom in">+</button>
+      <button type="button" data-zoom-fit class="lightbox-fit">Fit</button>
+    </div>
+    <p class="lightbox-hint">Click to zoom in · scroll or pinch to zoom · drag to move</p>
   </div>
 
   <script>
-    // Click-to-zoom lightbox; re-binds after Astro view transitions
-    const initLightbox = () => {
-      const lightbox = document.getElementById('image-lightbox');
-      const lightboxImg = lightbox?.querySelector<HTMLImageElement>('.lightbox-img');
-      const closeBtn = lightbox?.querySelector('.lightbox-close');
-      if (!lightbox || !lightboxImg) return;
+    import { initImageLightbox } from '../scripts/image-lightbox-zoom-pan';
 
-      const closeLightbox = () => {
-        lightbox.classList.remove('is-open');
-        lightbox.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-      };
-
-      document.querySelectorAll<HTMLImageElement>('img[data-zoom]').forEach((img) => {
-        // Idempotent — set a dataset flag so listeners don't stack on re-init
-        if (img.dataset.zoomBound === '1') return;
-        img.dataset.zoomBound = '1';
-        img.style.cursor = 'zoom-in';
-        img.addEventListener('click', () => {
-          lightboxImg.src = img.src;
-          lightboxImg.alt = img.alt;
-          lightbox.classList.add('is-open');
-          lightbox.setAttribute('aria-hidden', 'false');
-          document.body.style.overflow = 'hidden';
-        });
-      });
-
-      closeBtn?.addEventListener('click', closeLightbox);
-      lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) closeLightbox();
-      });
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeLightbox();
-      });
-    };
-
-    initLightbox();
-    document.addEventListener('astro:page-load', initLightbox);
+    initImageLightbox();
+    document.addEventListener('astro:page-load', initImageLightbox);
   </script>
 </BaseLayout>
 
@@ -296,23 +271,114 @@ const seoDescription =
     inset: 0;
     z-index: 100;
     display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    background: rgba(15, 23, 42, 0.88);
+    background: rgba(15, 23, 42, 0.92);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }
 
   .lightbox.is-open {
-    display: flex;
+    display: block;
+  }
+
+  /* Full-screen viewport; the image is positioned and scaled by transform in JS */
+  .lightbox-stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    touch-action: none;
+    cursor: zoom-out;
   }
 
   .lightbox-img {
-    max-width: 95vw;
-    max-height: 90vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: none;
+    transform-origin: 0 0;
     border-radius: 0.5rem;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: zoom-in;
+  }
+
+  .lightbox.is-zoomed .lightbox-img,
+  .lightbox.is-zoomed .lightbox-stage {
+    cursor: grab;
+  }
+
+  .lightbox.is-dragging .lightbox-img,
+  .lightbox.is-dragging .lightbox-stage {
+    cursor: grabbing;
+  }
+
+  .lightbox-toolbar {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: white;
+    font-size: 0.85rem;
+  }
+
+  .lightbox-toolbar button {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.6rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .lightbox-toolbar button:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .lightbox-toolbar .lightbox-fit {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .lightbox-level {
+    min-width: 3.5rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lightbox-hint {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    margin: 0;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .lightbox.is-zoomed .lightbox-hint {
+    opacity: 0;
+  }
+
+  @media (max-width: 640px) {
+    .lightbox-hint {
+      display: none;
+    }
   }
 
   .lightbox-close {
