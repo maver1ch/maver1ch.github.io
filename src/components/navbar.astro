@@ -1,7 +1,6 @@
 ---
 const navLinks = [
   { href: '/#work', label: 'Work', section: 'work' },
-  { href: '/#about', label: 'About', section: 'about' },
   { href: '/#skills', label: 'Skills', section: 'skills' },
   { href: '/#contact', label: 'Contact', section: 'contact' },
 ];
@@ -30,7 +29,7 @@ const navLinks = [
 
 <script>
   // Active link scroll-spy
-  const sections = ['work', 'about', 'skills', 'contact']
+  const sections = ['work', 'skills', 'contact']
     .map((id) => document.getElementById(id))
     .filter((el): el is HTMLElement => el !== null);
 
