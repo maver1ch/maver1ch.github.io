@@ -1,5 +1,9 @@
+/** Home page block a case study belongs to: founder work, enterprise production, or academic research */
+export type CaseStudyGroup = 'startup' | 'production' | 'research';
+
 export interface CaseStudyMeta {
   slug: string;
+  group: CaseStudyGroup;
   title: string;
   client: string;
   period: string;
@@ -17,11 +21,12 @@ export interface CaseStudyMeta {
 export const caseStudies: CaseStudyMeta[] = [
   {
     slug: 'wizzdom-ai-grading',
+    group: 'startup',
     title: 'Wizzdom: AI Grading for Handwritten Math',
     client: 'Wizzdom (EdTech startup)',
     period: 'Jul 2025 – Dec 2025',
     blurb:
-      'Only engineer at an EdTech startup. Pivoted after 20–30 teacher interviews, then built AI grading for handwritten math: Zalo submissions, Mathpix OCR, Gemini rubric grading, and a teacher review screen. 3x faster than by hand, 1,000+ papers graded.',
+      'Pivoted after 20–30 teacher interviews, then built AI grading for handwritten math: Mathpix OCR, Gemini step-by-step rubric grading, and a review screen with notes pinned to the handwriting. 3x faster than by hand, 1,000+ papers graded, paid for by teachers.',
     coverImage: '/assets/case-studies/wizzdom/cover.jpg',
     coverIllustration: true,
     coverLabel: 'Product Screenshot',
@@ -30,6 +35,7 @@ export const caseStudies: CaseStudyMeta[] = [
   },
   {
     slug: 'fpt-hr-conversational-ai',
+    group: 'production',
     title: 'HR Conversational AI Platform',
     client: 'Covestro AG (via FPT Software)',
     period: 'Mar 2026 – Present',
@@ -42,6 +48,7 @@ export const caseStudies: CaseStudyMeta[] = [
   },
   {
     slug: 'fpt-contract-intelligence',
+    group: 'production',
     title: 'AI Contract Intelligence System',
     client: 'FPT Software',
     period: 'Jan 2026 – Feb 2026',
@@ -54,6 +61,7 @@ export const caseStudies: CaseStudyMeta[] = [
   },
   {
     slug: 'hti-agentic-chatbot',
+    group: 'production',
     title: 'Enterprise Agentic Chatbot & LLMOps Infrastructure',
     client: 'HTI Group',
     period: 'Apr 2025 – Dec 2025',
@@ -66,6 +74,7 @@ export const caseStudies: CaseStudyMeta[] = [
   },
   {
     slug: 'hg-chatbot',
+    group: 'production',
     title: 'Enterprise Internal AI Chatbot',
     client: 'HG Group',
     period: 'Sep 2024 – Feb 2025',
@@ -78,6 +87,7 @@ export const caseStudies: CaseStudyMeta[] = [
   },
   {
     slug: 'esg-business-report',
+    group: 'research',
     title: 'Knowledge-Graph RAG for ESG Banking Reports',
     client: 'Academic Research',
     period: '',

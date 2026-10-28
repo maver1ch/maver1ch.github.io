@@ -1,20 +1,50 @@
 ---
-import { caseStudies } from '../../data/case-studies.ts';
+import { caseStudies, type CaseStudyGroup } from '../../data/case-studies.ts';
 import CaseStudyCard from '../case-study-card.astro';
+
+// Founder work first, then enterprise production, then academic research
+const blocks: { group: CaseStudyGroup; lead: string; accent: string; lede: string }[] = [
+  {
+    group: 'startup',
+    lead: 'Startup,',
+    accent: 'from zero',
+    lede: 'The only founding engineer at an EdTech startup: talked to users, pivoted, and shipped the whole product alone.',
+  },
+  {
+    group: 'production',
+    lead: 'Production AI,',
+    accent: 'shipped',
+    lede: 'Enterprise AI shipped to production at FPT Software, HTI Group and HG Group.',
+  },
+  {
+    group: 'research',
+    lead: 'Research,',
+    accent: 'measured',
+    lede: 'Academic work, scored against an expert-annotated benchmark.',
+  },
+];
 ---
 
 <section class="featured-work" id="work">
-  <header class="section-header">
-    <h2 class="section-title">
-      Production AI, <span class="grad">shipped</span>.
-    </h2>
-  </header>
+  {blocks.map((block) => {
+    const studies = caseStudies.filter((study) => study.group === block.group);
+    return studies.length > 0 && (
+      <div class="work-block" id={`work-${block.group}`}>
+        <header class="section-header">
+          <h2 class="section-title">
+            {block.lead} <span class="grad">{block.accent}</span>.
+          </h2>
+          <p class="section-lede">{block.lede}</p>
+        </header>
 
-  <div class="case-list">
-    {caseStudies.map((study, idx) => (
-      <CaseStudyCard study={study} index={idx} />
-    ))}
-  </div>
+        <div class="case-list">
+          {studies.map((study, idx) => (
+            <CaseStudyCard study={study} index={idx} />
+          ))}
+        </div>
+      </div>
+    );
+  })}
 </section>
 
 <style>
@@ -66,6 +96,17 @@ import CaseStudyCard from '../case-study-card.astro';
     background-clip: text;
   }
 
+
+  .section-lede {
+    font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+    line-height: 1.55;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .work-block + .work-block {
+    margin-top: 8rem;
+  }
 
   .case-list {
     display: flex;
