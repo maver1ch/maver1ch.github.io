@@ -14,7 +14,7 @@ interface Props {
   client: string;
   period: string;
   role: string;
-  tldr: string;
+  tldr?: string;
   stack?: string[];
   metrics?: Metric[];
   description?: string;
@@ -37,7 +37,7 @@ const {
 
 const seoTitle = `${title} — Case Study | Dam Hong Phuc`;
 const seoDescription =
-  description ?? `Case study: ${title}. ${tldr.slice(0, 140)}`;
+  description ?? `Case study: ${title}. ${tldr ? tldr.slice(0, 140) : `${role} at ${client}.`}`;
 ---
 
 <BaseLayout title={seoTitle} description={seoDescription} image={image}>
@@ -67,6 +67,7 @@ const seoDescription =
       </section>
     )}
 
+    {tldr && (
     <section class="case-tldr-wrap">
       <GlassCard hover={false}>
         <h2 class="tldr-heading">TL;DR</h2>
@@ -91,6 +92,7 @@ const seoDescription =
         )}
       </GlassCard>
     </section>
+    )}
 
     <section class="case-content">
       <slot />

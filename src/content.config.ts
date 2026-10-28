@@ -8,7 +8,8 @@ const work = defineCollection({
     client: z.string(),
     period: z.string(),
     role: z.string(),
-    tldr: z.string(),
+    /** Summary box at the top of the case study; leave out to hide the box */
+    tldr: z.string().optional(),
     stack: z.array(z.string()).default([]),
     metrics: z
       .array(
