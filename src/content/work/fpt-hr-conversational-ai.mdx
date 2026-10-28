@@ -27,13 +27,13 @@ import DecisionBlock from '../../components/case-study/decision-block.astro';
 
 ## Problem
 
-Covestro AG's HR assistant was live across countries, but had spent almost a year in maintenance-only mode with nothing measured.
+Covestro's HR assistant was live across countries, but had spent a year in maintenance mode with nothing measured.
 
-- **Improvements ran on guesswork** — no numbers behind any of them: **cost metrics** never emitted, **dashboards** dead for a year, the **evaluation pipeline** broken.
-- **No production-like test environment** — DEV ran on a year-old **QA knowledge base**, so passing on DEV proved nothing about PROD.
-- **Dangerous deploy path** — merging to `main` shipped straight to production, with no **unit tests**, no **`cdk diff`** and a **guardrail** stuck on a draft version.
-- **Monolith mixing reasoning with execution** — six **hard-coded agents** sharing one Lambda with retrieval, permissions and ServiceNow / Workday calls; every prompt change meant a **redeploy**.
-- **No single point of enforcement** — the **permission filter** was monkey-patched into the retriever, and HR-only content could not be published safely.
+- **Guesswork** — no cost metrics, dead dashboards, a broken evaluation pipeline.
+- **No production-like DEV** — tests ran on a year-old QA knowledge base.
+- **Risky deploys** — merging to `main` shipped to production, with no tests and no `cdk diff`.
+- **Monolith** — six hard-coded agents in one Lambda; every prompt change needed a redeploy.
+- **No single permission check** — HR-only content could not be published safely.
 
 <PhaseMarker label="Phase 1 — Reviving Tailor v1" />
 
@@ -43,7 +43,7 @@ Covestro AG's HR assistant was live across countries, but had spent almost a yea
   image="/assets/case-studies/covestro/images/01-takeover-audit.png"
   alt="The inherited Tailor v1 architecture with measured findings pinned to the knowledge base, the LLM, the guardrail, CloudWatch and CI/CD"
 >
-I worked in three phases: read the system offline, then use the one window of cloud access to **measure, not fix**, then turn the numbers into a **12-item backlog** with evidence on every line. Two scores set the direction — **recall@5 52.7%** for retrieval, **faithfulness 74.5%** for generation — so the lever was what the model sees, not the model itself. Token metrics were defined but **never emitted**, and three of four dashboards were dead.
+Read the system offline, **measure, not fix**, then turn the numbers into a **12-item backlog**. **Recall@5 52.7%** and **faithfulness 74.5%** showed the lever was what the model sees, not the model.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -52,9 +52,9 @@ I worked in three phases: read the system offline, then use the one window of cl
   image="/assets/case-studies/covestro/images/02-llm-observability.png"
   alt="One chat turn traced step by step in Langfuse, with personal data masked at the source; traces power token usage, cost tracking, per-step latency, debugging, a golden-dataset baseline and prompt versioning"
   highlight
-  challenge="Cost metrics were never emitted and CloudWatch showed nothing inside an answer, so nobody could say why an answer was wrong, how long each step took, or what a model change would cost."
+  challenge="Nobody could say why an answer was wrong, how slow each step was, or what it cost."
 >
-Observability came first, because every later fix needed a way to measure its effect. I integrated **Langfuse** so every turn became one trace — each LLM call, retrieval and tool call as a span, with **token usage, cost and latency per step**. Model **cost comparison** became a query, not a guess; a bad answer became a trace to **debug** step by step; every change had a **golden dataset** of ~200 HR questions as its baseline, with **prompts versioned** alongside. Because HR questions carry **personal data**, it was masked before leaving the app, and production kept **metadata only**.
+**Langfuse** traces every turn: **tokens, cost and latency per step**, a **golden dataset** of ~200 questions as the baseline, and **personal data masked** at the source.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -63,7 +63,7 @@ Observability came first, because every later fix needed a way to measure its ef
   image="/assets/case-studies/covestro/images/03-knowledge-ingestion.png"
   alt="Hourly ServiceNow ingestion pipeline on AWS: EventBridge, Lambda, SQS with DLQ, DynamoDB, an attachment conversion branch, S3, a chunking Lambda, Bedrock Knowledge Base and OpenSearch"
 >
-A full corpus scan — every article checked against the source, not a sample — found two faults in the same layer. The HTML→Markdown converter flattened tables to one cell per line, so salary and benefit grids lost the rows and columns that gave the numbers meaning. And chunking was **fixed-size**, cutting straight through those tables. I rebuilt the converter so **real Markdown tables survive**, then moved ingestion to **hierarchical chunking** — parent chunks for context, child chunks for precision — with **table-aware boundaries**: a split landing inside a table extends to take the whole table instead of severing it.
+Tables were flattened, and **fixed-size** chunks cut through them. I rebuilt the converter so **Markdown tables survive**, then moved to **hierarchical, table-aware chunking**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -71,9 +71,9 @@ A full corpus scan — every article checked against the source, not a sample �
   title="Production-like DEV: Mirroring the Production Knowledge Base"
   image="/assets/case-studies/covestro/images/04-kb-mirror.png"
   alt="Cross-account mirror of the production knowledge base into DEV, with a runtime SSM switch between the mirror and the stale QA knowledge base"
-  challenge="DEV read a separate QA knowledge base — 815 articles against 995 in production, some one to two years old. Passing on DEV proved nothing about production."
+  challenge="DEV used a stale QA knowledge base (815 vs 995 articles), so passing on DEV proved nothing."
 >
-I built a **second knowledge base in DEV that mirrors production**. A DEV role reads the production bucket with **`GetObject` and `ListBucket` only**, and a mirror Lambda syncs **by ETag**, so re-runs simply reconcile. It uses the same **embedding and chunking** as production, and the live knowledge base is an **SSM parameter read at runtime**. This made the move to **Bedrock Claude Sonnet 4.5** provable before it shipped.
+A **cross-account, read-only mirror** of the production knowledge base in DEV, synced **by ETag** and chosen by an **SSM parameter** at runtime.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -82,9 +82,9 @@ I built a **second knowledge base in DEV that mirrors production**. A DEV role r
   image="/assets/case-studies/covestro/images/05-semantic-cache.png"
   alt="Semantic cache on ElastiCache: questions embedded with Cohere Multilingual v3, cosine match scoped by permission, hits served directly, misses run the RAG path and write back"
   highlight
-  challenge="HR questions repeat constantly in a hundred wordings, so a key cache never hits — and with per-country visibility, a shared cache could leak."
+  challenge="The same questions come in a hundred wordings, and a shared cache could leak across permissions."
 >
-About **85% of questions hit the same articles**. Questions are embedded with **Cohere Multilingual v3** and matched in **ElastiCache** by cosine; at **0.95 or above** the stored answer is served, skipping retrieval and the LLM. Misses run normal RAG and write back with a **24h TTL**. PII is masked first, and the **cache key carries the user's permission scope**. Repeats return in **~150 ms** with zero tokens.
+**Cohere** embeddings matched in **ElastiCache** at **≥ 0.95** similarity; the **cache key carries the user's permission scope**. Repeats return in **~150 ms** with zero tokens.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -93,9 +93,9 @@ About **85% of questions hit the same articles**. Questions are embedded with **
   image="/assets/case-studies/covestro/images/06-hr4hr-permissions.png"
   alt="HR4HR: every document labelled at import, a server-side HR check each turn, one filter at a single choke point, and two switches with a five-step rollout that turns the filter on before the HR content"
   highlight
-  challenge="134 internal HR articles had to share one index with ~1,000 public ones — visible to HR only, with no leakage window even mid-rollout."
+  challenge="134 HR-only articles had to share one index with ~1,000 public ones."
 >
-Each document carries an `access_level` tag. `is_hr` is computed **server-side on every turn**, cached briefly and **fail-closed**; client flags are never trusted. The filter sits at a **single choke point** every agent inherits. The rollout followed one invariant — filter **on before** the first restricted document lands — across **four gated stages**. Non-HR users saw **0 restricted references**.
+A **server-side HR check** on every turn and one filter at a **single choke point**, switched **on before** restricted content landed. **0 restricted references** reached non-HR users.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 2 — Tailor 2.0: platform migration" highlight />
@@ -106,7 +106,7 @@ Each document carries an `access_level` tag. `is_hr` is computed **server-side o
   image="/assets/case-studies/covestro/images/07-tailor-2-platform.png"
   alt="Tailor 2.0 on AWS: a stateless agent engine on Lambda with agent config in DynamoDB, three MCP services invoked as Lambdas, a tool-audit table and the tailor-core data plane"
 >
-**Prompts and tools are data, not code** — that is the biggest difference between v1 and 2.0. A **stateless engine** — LangGraph ReAct behind a streaming Function URL, history arriving with every request — owns the conversation loop, guardrails on input and output, and identity; it never calls a business API. Three **MCP services** for knowledge, ServiceNow and Workday expose typed tools through the MCP SDK and are invoked as Lambdas with a JSON-RPC payload; each resolves permissions server-side and writes an audit row. Agents live in **DynamoDB** — one active revision, a tool allowlist resolved through a **three-layer registry** — so a new source is a new service plus one config item.
+**Prompts and tools are data, not code.** A **stateless LangGraph engine** runs the loop and guardrails; **MCP services** (knowledge, ServiceNow, Workday) own the tools and audit every call; agents live in **DynamoDB**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -115,18 +115,18 @@ Each document carries an `access_level` tag. `is_hr` is computed **server-side o
   image="/assets/case-studies/covestro/images/08-release-gates.png"
   alt="Two release gates: a hand-scored 30-question parity run, then a latency waterfall from 18.6 s to 6.3 s against the legacy 7.7 s"
 >
-Quality and speed were gated separately. **Parity first**: 90 reference questions covering every case type and the edge cases, only the switch flipped, scored by an **LLM judge** whose scores the HR team then reviewed — the new platform matched or beat the old one on **90 of 90**. For latency, joining client timings with engine logs on `conversation_id` exposed **fake streaming**: nothing was sent until the whole answer was ready. Three fixes took **time to first token (P50) from 18.6 s to 6.3 s**, below the legacy 7.7 s.
+**Parity**: 90 questions scored by an **LLM judge**, reviewed by HR — **90 / 90**. **Latency**: fixed fake streaming, first token **18.6 s → 6.3 s** (legacy 7.7 s).
 </ArchitectureSection>
 
 <ArchitectureSection
   step="09"
   title="Zero-Downtime Cutover Behind an SSM Switch"
   image="/assets/case-studies/covestro/images/09-cutover-ssm-switch.png"
-  alt="An SSM switch inside the v1 chat Lambda sends each request either to the IAM-signed agent engine or to the old monolith agents, with no per-request fallback"
+  alt="An SSM switch inside the v1 chat Lambda sends each request either to the IAM-signed agent engine or to the old monolith agents"
   highlight
-  challenge="Users arrive through a third-party chat platform that could not be changed, with no downtime budget — every step had to be reversible in under a minute."
+  challenge="A third-party chat front end we could not change, and no downtime budget."
 >
-Every request already passed through the monolith's chat Lambda, so the switch went there: one **SSM parameter**, read per request. When it is on, the Lambda **signs the same request with IAM**, forwards it to the engine and streams the answer back; when it is off, the old agents answer as before. There is deliberately **no automatic per-request fallback** — it would run a turn twice, possibly creating a duplicate ticket, and hide failures from alarms. Switching is a person's decision: **one value, no deploy**, with rollback **rehearsed at 34.8 s**.
+One **SSM switch** in the old chat Lambda sends each request to the new engine or the old agents. **No deploy to switch**; rollback **rehearsed at 34.8 s**.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -135,67 +135,67 @@ Every request already passed through the monolith's chat Lambda, so the switch w
   image="/assets/case-studies/covestro/images/10-data-plane-migration.png"
   alt="Knowledge base, OpenSearch collection, tables, buckets and the ingestion pipeline moved from the monolith CDK app to a new data repo by stack refactor and cdk import"
   highlight
-  challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith. Rebuilding meant re-ingesting every article and new ids everywhere."
+  challenge="Rebuilding the data plane meant re-ingesting everything and new ids everywhere."
 >
-A spike settled it: **move, don't rebuild**. Stateful resources got `Retain`, consumers read ids from config, and every window had abort criteria. When the first window was **aborted**, **16 probe refactors** isolated an undocumented CloudFormation rule, and a "touch" step became standard. The next window moved **11 resources in 45 seconds** — **zero id changes, no re-ingestion**.
+**Move, don't rebuild.** After one aborted window and **16 probe refactors**, **11 resources moved in 45 s** — **zero id changes**, no re-ingestion.
 </ArchitectureSection>
 
 <PhaseMarker label="Phase 3 — Agent Configurator: putting the business in control" highlight />
 
 <DecisionBlock
-  decision="Build a platform, not one-off fixes: a safe space where the product owner and HR can understand the agents and change them on their own."
-  why="HR kept bringing new use cases — CV screening, AI-assisted performance reviews. If every experiment needs a developer, the developer becomes the bottleneck and the business stops experimenting."
-  tradeoff="Phase 1 covers prompt-and-config changes only. Tool calls, third-party apps and databases still go through code review and open up step by step."
+  decision="A platform, not one-off fixes: a safe space where the product owner and HR change agents themselves."
+  why="HR kept bringing use cases — CV screening, AI-assisted performance reviews. A developer for every experiment does not scale."
+  tradeoff="Phase 1 is prompt and config only; tools, third-party apps and databases come next."
 />
 
 <ArchitectureSection
-  step="12"
+  step="11"
   title="Agent Canvas: See the Whole System"
   image="/assets/case-studies/agent-configurator/01-agent-canvas.jpg"
   alt="Agent Canvas: every agent and MCP service as a card, with purple lines for handoffs and dashed coloured lines for tool use"
   highlight
-  challenge="Agent behaviour is configuration the engine reads on every message, but only a developer could change it, by writing JSON straight to the database. Nobody else could see which agent hands off to which, or what an MCP service is."
+  challenge="Only developers could change an agent, and nobody else could see the system."
 >
-I built **Agent Configurator**, an internal **React** app with an API on **AWS Lambda** and company **SSO**. Its first page is a **map of the running system**: every agent and every MCP service (Workday, ServiceNow, knowledge, learning…) is a card; purple lines are **handoffs**, dashed lines show which **tools** each agent uses, and a red dotted line is a broken handoff. People **edit on the map** — drag between agents to create a handoff (and write when it should happen), drag onto a service to tick the tools an agent may call, none ticked by default. Edits become **drafts**; the Canvas never puts anything live.
+A **React** app (API on **AWS Lambda**, company **SSO**) that **maps every agent and MCP service**. Drag to add a handoff or a tool; edits stay **drafts**.
+</ArchitectureSection>
+
+<ArchitectureSection
+  step="12"
+  title="Edit as a New Version, Checked Like the Engine"
+  image="/assets/case-studies/agent-configurator/02-edit-as-new-version.jpg"
+  alt="Agent edit form: tools, handoffs, handoff messages, follow-up suggestions and model settings, each with a plain-language label and one-line help"
+  challenge="Hand-edited config had already gone wrong twice."
+>
+A plain-language form, tools **live from the engine**, every save checked with **the engine's own rules**. Saving **only appends a version** — nothing is overwritten.
 </ArchitectureSection>
 
 <ArchitectureSection
   step="13"
-  title="Edit as a New Version, Checked Like the Engine"
-  image="/assets/case-studies/agent-configurator/02-edit-as-new-version.jpg"
-  alt="Agent edit form: tools, handoffs, handoff messages, follow-up suggestions and model settings, each with a plain-language label and one-line help"
-  challenge="Hand-edited config had already gone wrong twice: an agent given ticketing tools without matching prompt rules created a ticket without asking the user, and a copy between environments turned an empty value into true, so every chat turn failed."
->
-Nobody edits JSON by hand anymore. Every field has a **plain-language name and a one-line explanation**; the tool list comes **live from the engine**, so only real tools can be picked; a change note is required. Each save is checked with **the same rules the engine uses**: errors block the save, warnings are shown but don't. Saving **only appends a new version** — nothing is overwritten or deleted — and a concurrent save shows a **conflict** instead of a silent overwrite.
-</ArchitectureSection>
-
-<ArchitectureSection
-  step="14"
   title="Diff, Activate, Roll Back"
   image="/assets/case-studies/agent-configurator/03-agent-versions.jpg"
   alt="Agents list with the active version, number of versions, description and last change for each agent"
   highlight
-  challenge="A config change has no pull request and no CI. Whatever is activated reaches every employee on the next message."
+  challenge="A config change has no pull request and no CI, and goes live on the next message."
 >
-Each agent has versions that are **active, draft or history**. A **diff** — prompt line by line, tools and handoffs added or removed — is the review step before going live. **Activate** test-reads the version exactly as the engine would, then moves the active flag in **one atomic step** and logs who changed what; on production the user must **type the version number** to confirm. **Rollback is activating an older version**, effective on the next message. Names in the history come from the SSO login, not a text field.
+The **diff** is the review. **Activate** test-reads like the engine and swaps in **one atomic step**; production needs the version number typed. **Rollback** = activate an older version.
 </ArchitectureSection>
 
 <PhaseMarker label="Across all phases — delivery pipeline" />
 
 <ArchitectureSection
-  step="15"
+  step="14"
   title="Delivery Pipeline: CI/CD, IaC & LLM Regression"
   image="/assets/case-studies/covestro/images/11-delivery-pipeline.png"
   alt="Before: merging to main deployed straight to production with no tests or infra diff. After: pull-request CI with coverage, a cdk diff gate, DEV deploy through OIDC with smoke tests, an LLM regression suite, and a manual production dispatch"
 >
-At takeover, merging to `main` was the production deploy, with no unit tests and no infrastructure diff. Now every repo runs one pipeline: lint, unit tests with an **80% coverage floor** and a **`cdk diff` against production** on each pull request; merging deploys to DEV through **GitHub OIDC** with an automatic smoke test. Any prompt, model or retrieval change must pass an **LLM regression suite** against the last release before a **manual production dispatch**. Features ship switched off, so **deploy is not release**.
+Every pull request: tests (**80% coverage**) and a **`cdk diff`** against production. An **LLM regression suite** gates a **manual production release**, and features ship switched off.
 </ArchitectureSection>
 
 ## Outcome
 
-- **From guesswork to measurement** — a production assistant nobody could observe became one with a baseline, tracing, and a backlog chosen by numbers; **19 production releases** as sole developer.
-- **Repeat questions in ~150 ms** from a semantic cache that stays inside the user's permission scope.
-- **HR-only knowledge base with zero leakage** — fail-closed filter at a single choke point, rolled out in an order that never opened a window.
-- **Zero-downtime migration** to a multi-service agent platform — parity 90/90 and latency 18.6 → 6.3 s proven first, cutover behind an SSM switch with a rehearsed rollback.
-- **Stateful data plane moved between CDK apps with zero id changes** and no re-ingestion, plus an undocumented CloudFormation constraint turned into a reusable procedure.
-- **Business in control** — since October 2026 the product owner and HR team use Agent Configurator to understand the agents and MCP services and to create simple prompt-and-config skills themselves; the old CLI path is kept only for emergencies.
+- **From guesswork to measurement** — baseline, tracing, **19 releases** as sole developer.
+- **Repeat questions in ~150 ms**, inside the user's permission scope.
+- **HR-only content with zero leakage.**
+- **Zero-downtime migration** — parity 90 / 90, first token 18.6 → 6.3 s.
+- **Data plane moved with zero id changes**, no re-ingestion.
+- **Business in control** — the product owner and HR create simple agents themselves with Agent Configurator.
