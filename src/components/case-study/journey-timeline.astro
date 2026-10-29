@@ -1,0 +1,120 @@
+---
+// Horizontal timeline of a product journey: each step names when, what was tried, the signal, and the verdict
+type Verdict = 'killed' | 'built' | 'shipped';
+
+interface Step {
+  when: string;
+  title: string;
+  text: string;
+  verdict: Verdict;
+  label: string;
+}
+
+interface Props {
+  steps: Step[];
+  note?: string;
+}
+
+const { steps, note } = Astro.props;
+---
+
+<section class="journey reveal" aria-label="Product journey">
+  <span class="journey-kicker">The journey</span>
+  <ol class="journey-steps">
+    {steps.map((s) => (
+      <li class="journey-step">
+        <span class="journey-when">{s.when}</span>
+        <span class="journey-title">{s.title}</span>
+        <span class="journey-text">{s.text}</span>
+        <span class:list={['journey-verdict', s.verdict]}>{s.label}</span>
+      </li>
+    ))}
+  </ol>
+  {note && <p class="journey-note">{note}</p>}
+</section>
+
+<style>
+  .journey {
+    padding: 1.75rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    margin-bottom: 3rem;
+  }
+
+  .journey-kicker {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-accent-primary);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Doubled class beats the case study's global list margins */
+  .journey-steps.journey-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+  }
+
+  /* Each step sits on a shared top rule, like stops on a line */
+  .journey-step.journey-step {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-top: 1rem;
+    border-top: 2px solid rgba(37, 99, 235, 0.25);
+  }
+
+  .journey-when {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  .journey-title {
+    font-family: var(--font-heading);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+  }
+
+  .journey-text {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--color-text-secondary);
+    flex: 1;
+  }
+
+  .journey-verdict {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+  }
+  .journey-verdict.killed  { color: #b91c1c; background: rgba(220, 38, 38, 0.08); }
+  .journey-verdict.built   { color: #1d4ed8; background: rgba(37, 99, 235, 0.08); }
+  .journey-verdict.shipped { color: #15803d; background: rgba(22, 163, 74, 0.10); }
+
+  .journey-note {
+    margin: 1.25rem 0 0;
+    font-size: 0.92rem;
+    color: var(--color-text-secondary);
+  }
+
+  @media (max-width: 860px) {
+    .journey-steps.journey-steps { grid-template-columns: 1fr; }
+  }
+</style>

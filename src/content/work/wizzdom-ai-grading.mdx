@@ -1,10 +1,9 @@
 ---
 title: "Wizzdom: AI Grading for Handwritten Math"
 client: "Wizzdom (EdTech startup)"
-period: "Jul 2025 – Dec 2025"
+period: "Jun 2025 – Oct 2025"
 role: "Technical Leader & Founding Member"
 order: 0
-video: "FUmXBPw-dD8"
 stack:
   - React
   - TypeScript
@@ -25,6 +24,19 @@ stack:
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
 import PhaseMarker from '../../components/case-study/phase-marker.astro';
 import DecisionBlock from '../../components/case-study/decision-block.astro';
+import JourneyTimeline from '../../components/case-study/journey-timeline.astro';
+import VideoEmbed from '../../components/case-study/video-embed.astro';
+
+<JourneyTimeline
+  steps={[
+    { when: 'Jun', title: 'H1 · AI tutor for students', text: "6-hour MVP. Students lacked devices or just wanted homework done, and students don't pay.", verdict: 'killed', label: 'Killed, week 4' },
+    { when: 'Jul', title: 'H2 · Grading + progress dashboard for teachers', text: "Teachers praised the dashboard, then didn't use it.", verdict: 'killed', label: 'Dashboard cut' },
+    { when: 'Aug–Sep', title: 'Build the grading tool', text: 'Review screen, notes on the handwriting, re-grade one question, all from teacher demos.', verdict: 'built', label: 'Built' },
+    { when: 'End Sep', title: 'Paid pilot', text: '2–3 tutoring classes, 1,000+ papers, teachers paid.', verdict: 'shipped', label: 'Shipped' },
+    { when: 'Pilot', title: 'Measure and fix', text: '60–70% agreement → traced to messy handwriting → flag per student: ~95% on neat writing.', verdict: 'built', label: 'Fixed' },
+  ]}
+  note="71 teacher interviews across all phases."
+/>
 
 ## Problem
 
@@ -32,19 +44,21 @@ Tutoring teachers in Vietnam grade handwritten math by hand.
 
 - **Slow** — 2–3 hours to grade one class.
 - **Costly** — a paid assistant charges about 5,000 VND per paper.
-- **Wrong first user** — our first product, an AI tutor for students, did not touch this pain at all.
+- **Hard to see at first** — it took two hypotheses and 71 teacher interviews to find this pain.
 
-<PhaseMarker label="Phase 1 — Discovery: finding the job worth paying for" />
+<PhaseMarker label="Phase 1 — Discovery: two hypotheses killed in two months" />
+
+We ran 71 teacher interviews, in person and online. I ran the first 20–30 myself; later the marketing team ran them and I turned what they heard into product.
 
 <DecisionBlock
-  decision="Pivot from an AI tutor for students to a grading tool for teachers."
-  why="I shipped the tutor MVP in 6 hours, but adoption was low: not every student has a device, and most just want their homework done fast. Teachers feel the grading pain, and teachers pay."
-  tradeoff="We dropped a working MVP and started again with a new user."
+  decision="Kill hypothesis 1, the AI tutor for students, in week 4."
+  why="I shipped the tutor MVP in 6 hours. But not every student has a device, most just want homework done fast, and in EdTech students are not the ones who pay. Teachers pay, and we had a large pool of them to interview."
+  tradeoff="We dropped a working MVP after four weeks."
 />
 
 <DecisionBlock
-  decision="Cut the roadmap to one job: grade faster and cheaper."
-  why="We interviewed 20–30 tutoring teachers, in person and online. We pitched student progress analytics; they wanted to teach more students, not read more charts."
+  decision="Hypothesis 2: a grading tool plus a progress dashboard for teachers. Cut the dashboard."
+  why="We shipped a dashboard demo that tracked each student's progress and learning path. Teachers praised it, but when we invited them to use it, they did not. Their energy rose only when the talk turned to their own time: they wanted to teach more students, not read more charts."
   tradeoff="Learning paths and weak-spot analytics left the roadmap."
 />
 
@@ -52,7 +66,7 @@ Tutoring teachers in Vietnam grade handwritten math by hand.
 
 <DecisionBlock
   decision="Ship one way in first: the teacher uploads the class's papers."
-  why="Zalo OA would let students send photos from the chat they already use, and send reports straight to parents. As the only engineer, I had time for one intake path, and grading came first."
+  why="Teachers asked for Zalo OA, so students could send photos from the chat they already use, and send reports straight to parents. As the only engineer, I had time for one intake path, and grading came first."
   tradeoff="Teachers still collect papers and upload them by hand."
 />
 
@@ -85,7 +99,7 @@ The teacher creates an exam and uploads the class's papers. Grading runs in **ba
   highlight
   challenge="The teacher has to check AI grades fast, or the time saved is lost."
 >
-Each step is marked **right or wrong** next to the paper, and AI notes sit **on the exact line** the student wrote. One choice, three wins: the teacher checks faster, trusts the result more, and marks the way they already do on paper. They can edit, draw, or **re-grade one question**, then approve.
+Each step is marked **right or wrong** next to the paper, and AI notes sit **on the exact line** the student wrote. Teachers can edit, draw, or **re-grade one question**, then approve. All of it came from **teacher demos and interviews** during the build: check faster, trust more, and mark the way they already do on paper.
 </ArchitectureSection>
 
 <ArchitectureSection
@@ -106,12 +120,27 @@ Next to the grades, the teacher gets a **report written to the parent**: the sco
 **React + TypeScript** on Vercel with Google sign-in. **API Gateway → Lambda** (Python) serves the web app. Every upload to **S3** is an event: **EventBridge** sends an exam to preparation and a paper to grading, through **SQS** to a worker Lambda that calls Mathpix and Gemini. **RDS PostgreSQL** keeps exams, rubrics and teacher edits; **SES** emails the teacher.
 </ArchitectureSection>
 
+<PhaseMarker label="Phase 3 — Pilot: measure, find the root cause, fix" highlight />
+
+<DecisionBlock
+  decision="Flag messy handwriting once per student, not answer by answer."
+  why="v1 on Gemini 2.5 Pro graded 2x faster than by hand, but agreed with teacher grades only 60–70% of the time. I traced the misses: the model solved the math but misread messy handwriting. Handwriting does not change, so the teacher flags each student once. Neat writers reached ~95% agreement; flagged papers get a close check."
+  tradeoff="Teachers still check flagged students closely."
+/>
+
+After I moved to an advisory role, the team switched to Gemini 3 Pro, whose stronger vision lifted agreement above 80%.
+
 ## Outcome
 
-- **3x faster** than grading by hand in v1, with **~70% agreement** against teacher and assistant grades as the baseline.
-- **1,000+ papers** graded at tutoring centers, with **paying teachers** and **returning users**.
+- **Paid pilot** — 2–3 tutoring classes, **1,000+ papers**, teachers paid for the grading service.
+- **2x faster** than grading by hand; **60–70%** agreement in v1, **~95%** for students with neat handwriting.
+- **Later, by the team:** **80%+** with Gemini 3 Pro.
 - **Teacher in control** — nothing reaches a parent before the teacher approves.
-- **Discovery before code** — a pivot and a roadmap cut, both driven by 20–30 teacher interviews.
+- **Discovery before code** — 71 teacher interviews, two hypotheses killed in two months.
+
+## Product Demo
+
+<VideoEmbed id="FUmXBPw-dD8" title="Wizzdom: AI Grading for Handwritten Math — product demo" />
 
 ## Next on the Roadmap (Not Shipped)
 

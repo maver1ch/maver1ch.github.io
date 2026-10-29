@@ -1,0 +1,41 @@
+---
+// Privacy-friendly YouTube embed for a product demo, placed anywhere inside a case study
+interface Props {
+  id: string;
+  title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<div class="video-frame">
+  <iframe
+    src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`}
+    title={title}
+    loading="lazy"
+    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen
+  ></iframe>
+</div>
+
+<style>
+  .video-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    background: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.10);
+    margin-bottom: 2rem;
+  }
+
+  .video-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>
