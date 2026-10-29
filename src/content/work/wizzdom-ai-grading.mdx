@@ -74,7 +74,7 @@ We ran 71 teacher interviews, in person and online. I ran the first 20–30 myse
   step="01"
   title="User Flow: The Teacher Stays in Charge"
   image="/assets/case-studies/wizzdom/01-user-flow.png"
-  alt="Service blueprint: the teacher signs in, creates an exam and uploads papers; grading runs in background batches and an email says when papers are ready; the teacher reviews, approves and sends a PDF report to parents; Zalo OA intake and direct reports to parents are drawn dashed as planned"
+  alt="Service blueprint: the teacher signs in, flags messy handwriting once in the class list, creates an exam and uploads papers; grading runs in background batches and an email says when papers are ready; the teacher reviews, approves and sends a PDF report to parents; Zalo OA intake and direct reports to parents are drawn dashed as planned"
   challenge="Grading must be fast, but the AI does not get every question right."
 >
 The teacher creates an exam and uploads the class's papers. Grading runs in **background batches**, aiming at 20–30 minutes per class, and an **email** says when papers are ready. Nothing leaves until the teacher **approves**. Students sending papers on Zalo OA, and reports going straight to parents, were planned next (dashed).
@@ -84,7 +84,7 @@ The teacher creates an exam and uploads the class's papers. Grading runs in **ba
   step="02"
   title="AI Grading Pipeline: Rubric Once, Grade Many"
   image="/assets/case-studies/wizzdom/02-grading-pipeline.png"
-  alt="Exam split into questions with a rubric of steps per question; each paper is OCR'd by Mathpix, Gemini Vision finds the answer blocks, a fuzzy match ties each one to its question, Gemini grades step by step with an error type, line mapping pins notes to the handwriting, and the teacher reviews, can re-grade one question, and approves"
+  alt="Every AI step on Gemini 2.5 Pro: exam split into questions with a rubric of steps per question; each paper is OCR'd by Mathpix, Gemini Vision finds the answer blocks, a weak-spot note shows messy handwriting fooling both, a fuzzy match ties each one to its question, Gemini reads the image and the LaTeX and grades step by step with an error type, line mapping pins notes to the handwriting, and the teacher reviews with a flag warning, can re-grade one question, and approves"
   highlight
   challenge="Handwritten math, loose question labels, many valid methods, and credit for each step."
 >
