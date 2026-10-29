@@ -110,5 +110,7 @@ export const caseStudies: CaseStudyMeta[] = [
     coverLabel: 'Client\'s View',
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
     stack: ['Customer Discovery', 'Proposal Writing', 'Demo-First Selling', 'Client Care'],
+    // Archived: hidden from the home page and not built as a page
+    draft: true,
   },
 ];

@@ -33,7 +33,7 @@ const blocks: { group: CaseStudyGroup; lead: string; accent: string; lede: strin
 
 <section class="featured-work" id="work">
   {blocks.map((block) => {
-    const studies = caseStudies.filter((study) => study.group === block.group);
+    const studies = caseStudies.filter((study) => study.group === block.group && !study.draft);
     return studies.length > 0 && (
       <div class="work-block" id={`work-${block.group}`}>
         <header class="section-header">
