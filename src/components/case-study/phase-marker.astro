@@ -25,6 +25,11 @@ const { label, highlight = false } = Astro.props;
     max-width: 100%;
   }
 
+  /* Pull the first section closer so the marker reads as its heading, not a stray divider */
+  .phase-marker + :global(.arch-section) {
+    margin-top: 2.5rem;
+  }
+
   .phase-line {
     flex: 1;
     height: 1px;
@@ -73,8 +78,14 @@ const { label, highlight = false } = Astro.props;
     color: var(--color-accent-tertiary);
   }
 
+  /* Phone: drop the side lines and let the dot flow with wrapped text */
   @media (max-width: 600px) {
+    .phase-line {
+      display: none;
+    }
+
     .phase-label {
+      display: block;
       font-size: 0.82rem;
       letter-spacing: 0.18em;
       white-space: normal;
