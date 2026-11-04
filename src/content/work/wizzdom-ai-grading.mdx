@@ -23,7 +23,25 @@ stack:
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
 import PhaseMarker from '../../components/case-study/phase-marker.astro';
+import SlideDeck from '../../components/case-study/slide-deck.astro';
 import VideoEmbed from '../../components/case-study/video-embed.astro';
+
+<PhaseMarker label="The Journey" />
+
+<SlideDeck
+  title="My journey with Wizzdom"
+  slides={[
+    { src: '/assets/case-studies/wizzdom/journey/slide-1.png', alt: 'A startup journey: My Journey with Wizzdom. Victor Dam, Founding Engineer and Technical Leader.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-2.png', alt: 'Phase 1, Discovery: find the user, then the problem. Research: dozens of days to first hypotheses. Interviews: parents and teachers, I joined the first 20 to 30. Build: sole engineer, insights to product.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-3.png', alt: 'Idea 1, June: an AI tutor, killed in one week. A chatbot that walks students through math, physics and chemistry step by step. 6 hours to build the MVP, 1 week to test it and kill it. No real need: not every student has a device, most just want homework done fast, the motivated ones already solve it alone.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-4.png', alt: 'Insight 1: who uses it versus who pays for it. Teacher: uses it directly and can pay. Student: uses it directly, cannot pay. Parent: does not use it directly, can pay. Teachers are the only group on both sides, so we built for teachers.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-5.png', alt: 'Ideas 2 and 3, July: two teacher tools, one 18-hour MVP. Kept: AI grading for handwritten math tests, teachers actually used it. Cut: dashboard of student progress over time, teachers praised it but never used it.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-6.png', alt: 'Insight 2: teachers care most about their own time. They lit up when talking about teaching more students, not about reading more charts. So we cut the dashboard and kept only grading.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-7.png', alt: 'Product, August to September. v1: fast, but misreading handwriting. 2x faster than grading by hand, 60 to 70% agreement with teachers. Root cause: the model solved the math but misread messy handwriting. Two weeks of trying frontier models, self-hosted models, OCR services and classic computer vision; none solved it.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-8.png', alt: 'The workaround: handwriting does not change. Step 1, the teacher flags messy writers once. Step 2, the review screen asks for a careful check of those papers. Step 3, ship, then improve. About 95% agreement on clean handwriting, about 50% on messy handwriting in v1, 80%+ on the messy group later with Gemini 3 Pro.' },
+    { src: '/assets/case-studies/wizzdom/journey/slide-9.png', alt: 'Key takeaways: kill ideas fast, a 6-hour MVP was enough to show there was no real need. Watch behavior, not compliments. Ship the workaround: a good-enough fix in users hands beats a perfect one in progress.' },
+  ]}
+/>
 
 <PhaseMarker label="Inside the Product" highlight />
 
