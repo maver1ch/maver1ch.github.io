@@ -22,19 +22,7 @@ stack:
 ---
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
-import JourneyTimeline from '../../components/case-study/journey-timeline.astro';
 import VideoEmbed from '../../components/case-study/video-embed.astro';
-
-<JourneyTimeline
-  steps={[
-    { when: 'Jun', title: 'H1 · AI tutor for students', text: "6-hour MVP. Students lacked devices or just wanted homework done, and students don't pay.", verdict: 'killed', label: 'Killed, week 4' },
-    { when: 'Jul', title: 'H2 + H3 · Grading tool + progress dashboard for teachers', text: "18-hour MVP. Teachers praised the dashboard, then didn't use it.", verdict: 'killed', label: 'Dashboard cut' },
-    { when: 'Aug–Sep', title: 'Build the grading tool', text: '40–50 days of build. Review screen, notes on the handwriting, re-grade one question, all from teacher demos.', verdict: 'built', label: 'Build + Ship' },
-    { when: 'During build', title: 'Measure and fix', text: '60–70% agreement → traced to messy handwriting → 2 weeks of failed fixes → flag per student: ~95% on neat writing, ~50% on messy.', verdict: 'built', label: 'Workaround' },
-    { when: 'End Sep', title: 'Paid pilot', text: '2–3 tutoring classes, 1,000+ papers, teachers paid.', verdict: 'shipped', label: 'Launch' },
-  ]}
-  note="71 teacher interviews across all phases."
-/>
 
 ## Inside the Product
 
