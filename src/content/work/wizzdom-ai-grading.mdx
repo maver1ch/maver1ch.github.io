@@ -22,8 +22,6 @@ stack:
 ---
 
 import ArchitectureSection from '../../components/case-study/architecture-section.astro';
-import PhaseMarker from '../../components/case-study/phase-marker.astro';
-import DecisionBlock from '../../components/case-study/decision-block.astro';
 import JourneyTimeline from '../../components/case-study/journey-timeline.astro';
 import VideoEmbed from '../../components/case-study/video-embed.astro';
 
@@ -38,29 +36,7 @@ import VideoEmbed from '../../components/case-study/video-embed.astro';
   note="71 teacher interviews across all phases."
 />
 
-<PhaseMarker label="Phase 1 — Discovery: two hypotheses killed in two months" />
-
-We ran 71 teacher interviews, in person and online. I ran the first 20–30 myself; later the marketing team ran them and I turned what they heard into product.
-
-<DecisionBlock
-  decision="Kill hypothesis 1, the AI tutor for students, in week 4."
-  why="I shipped the tutor MVP in 6 hours. But not every student has a device, most just want homework done fast, and in EdTech students are not the ones who pay. Teachers pay, and we had a large pool of them to interview."
-  tradeoff="We dropped a working MVP after four weeks."
-/>
-
-<DecisionBlock
-  decision="Hypothesis 2: a grading tool plus a progress dashboard for teachers. Cut the dashboard."
-  why="We shipped a dashboard demo that tracked each student's progress and learning path. Teachers praised it, but when we invited them to use it, they did not. Their energy rose only when the talk turned to their own time: they wanted to teach more students, not read more charts."
-  tradeoff="Learning paths and weak-spot analytics left the roadmap."
-/>
-
-<PhaseMarker label="Phase 2 — Product: AI grading, teacher in control" highlight />
-
-<DecisionBlock
-  decision="Ship one way in first: the teacher uploads the class's papers."
-  why="Teachers asked for Zalo OA, so students could send photos from the chat they already use, and send reports straight to parents. As the only engineer, I had time for one intake path, and grading came first."
-  tradeoff="Teachers still collect papers and upload them by hand."
-/>
+## Inside the Product
 
 <ArchitectureSection
   step="01"
@@ -111,16 +87,6 @@ Next to the grades, the teacher gets a **report written to the parent**: the sco
 >
 **React + TypeScript** on Vercel with Google sign-in. **API Gateway → Lambda** (Python) serves the web app. Every upload to **S3** is an event: **EventBridge** sends an exam to preparation and a paper to grading, through **SQS** to a worker Lambda that calls Mathpix and Gemini. **RDS PostgreSQL** keeps exams, rubrics and teacher edits; **SES** emails the teacher.
 </ArchitectureSection>
-
-<PhaseMarker label="Phase 3 — Pilot: measure, find the root cause, fix" highlight />
-
-<DecisionBlock
-  decision="Flag messy handwriting once per student, not answer by answer."
-  why="v1 on Gemini 2.5 Pro graded 2x faster than by hand, but agreed with teacher grades only 60–70% of the time. I traced the misses: the model solved the math but misread messy handwriting. Handwriting does not change, so the teacher flags each student once. Neat writers reached ~95% agreement; flagged papers get a close check."
-  tradeoff="Teachers still check flagged students closely."
-/>
-
-After I moved to an advisory role, the team switched to Gemini 3 Pro, whose stronger vision lifted agreement above 80%.
 
 ## Outcome
 
