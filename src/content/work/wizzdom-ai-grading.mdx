@@ -28,10 +28,10 @@ import VideoEmbed from '../../components/case-study/video-embed.astro';
 <JourneyTimeline
   steps={[
     { when: 'Jun', title: 'H1 · AI tutor for students', text: "6-hour MVP. Students lacked devices or just wanted homework done, and students don't pay.", verdict: 'killed', label: 'Killed, week 4' },
-    { when: 'Jul', title: 'H2 · Grading + progress dashboard for teachers', text: "Teachers praised the dashboard, then didn't use it.", verdict: 'killed', label: 'Dashboard cut' },
-    { when: 'Aug–Sep', title: 'Build the grading tool', text: 'Review screen, notes on the handwriting, re-grade one question, all from teacher demos.', verdict: 'built', label: 'Build + Ship' },
+    { when: 'Jul', title: 'H2 + H3 · Grading tool + progress dashboard for teachers', text: "18-hour MVP. Teachers praised the dashboard, then didn't use it.", verdict: 'killed', label: 'Dashboard cut' },
+    { when: 'Aug–Sep', title: 'Build the grading tool', text: '40–50 days of build. Review screen, notes on the handwriting, re-grade one question, all from teacher demos.', verdict: 'built', label: 'Build + Ship' },
+    { when: 'During build', title: 'Measure and fix', text: '60–70% agreement → traced to messy handwriting → 2 weeks of failed fixes → flag per student: ~95% on neat writing, ~50% on messy.', verdict: 'built', label: 'Workaround' },
     { when: 'End Sep', title: 'Paid pilot', text: '2–3 tutoring classes, 1,000+ papers, teachers paid.', verdict: 'shipped', label: 'Launch' },
-    { when: 'Pilot', title: 'Measure and fix', text: '60–70% agreement → traced to messy handwriting → flag per student: ~95% on neat writing.', verdict: 'built', label: 'Fixed' },
   ]}
   note="71 teacher interviews across all phases."
 />
@@ -91,10 +91,10 @@ Next to the grades, the teacher gets a **report written to the parent**: the sco
 ## Outcome
 
 - **Paid pilot** — 2–3 tutoring classes, **1,000+ papers**, teachers paid for the grading service.
-- **2x faster** than grading by hand; **60–70%** agreement in v1, **~95%** for students with neat handwriting.
-- **Later, by the team:** **80%+** with Gemini 3 Pro.
+- **2x faster** than grading by hand; **60–70%** agreement in v1, **~95%** for students with neat handwriting, **~50%** for messy handwriting, so teachers check those papers closely.
+- **Later, by the team:** **80%+** on messy handwriting with Gemini 3 Pro.
 - **Teacher in control** — nothing reaches a parent before the teacher approves.
-- **Discovery before code** — 71 teacher interviews, two hypotheses killed in two months.
+- **Discovery before code** — 71 teacher interviews, three ideas tested in two months, two killed, one kept.
 
 ## Product Demo
 

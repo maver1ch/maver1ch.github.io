@@ -26,7 +26,7 @@ export const caseStudies: CaseStudyMeta[] = [
     client: 'Wizzdom (EdTech startup)',
     period: 'Jun 2025 – Oct 2025',
     blurb:
-      'Two hypotheses killed in two months after 71 teacher interviews, then built AI grading for handwritten math: Mathpix OCR, Gemini step-by-step rubric grading, notes pinned to the handwriting. Paid pilot: 1,000+ papers, 2x faster than by hand, ~95% agreement on neat handwriting.',
+      'Three ideas tested and two killed in two months after 71 teacher interviews, then built AI grading for handwritten math: Mathpix OCR, Gemini step-by-step rubric grading, notes pinned to the handwriting. Paid pilot: 1,000+ papers, 2x faster than by hand, ~95% agreement on neat handwriting.',
     coverImage: '/assets/case-studies/wizzdom/cover.jpg',
     coverIllustration: true,
     coverGradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
