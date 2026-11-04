@@ -129,6 +129,7 @@ Each document carries an `access_level` tag. HR status is checked **server-side 
 I put one **SSM parameter** in the old chat Lambda, read per request. When on, the Lambda **signs the request with IAM** and forwards it to the new engine; when off, the old agents answer. **One value, no deploy**, with rollback **rehearsed at 34.8 s**.
 </ArchitectureSection>
 
+{/* Data-plane module hidden for now — remove this comment wrapper to show it again
 <ArchitectureSection
   step="10"
   title="Data-Plane Ownership Transfer, Zero ID Changes"
@@ -138,7 +139,7 @@ I put one **SSM parameter** in the old chat Lambda, read per request. When on, t
   challenge="The knowledge base, OpenSearch collection, tables and ingestion pipeline still belonged to the monolith, and rebuilding meant new ids everywhere."
 >
 A spike settled it: **move, don't rebuild**. I used **CloudFormation stack refactor** and **`cdk import`** to hand each resource to a new data repo. One window moved **11 resources in 45 s**, with **zero id changes** and no re-ingestion.
-</ArchitectureSection>
+</ArchitectureSection> */}
 
 <PhaseMarker label="Phase 3 — Agent Configurator: putting the business in control" highlight />
 
@@ -197,5 +198,6 @@ Every pull request runs lint, unit tests with an **80% coverage floor** and a **
 - **Repeat questions in ~150 ms**, inside the user's permission scope.
 - **HR-only content with zero leakage.**
 - **Zero-downtime migration** — parity 90 / 90, first token 18.6 → 6.3 s.
-- **Data plane moved with zero id changes**, no re-ingestion.
 - **Business in control** — the product owner and HR create simple agents themselves with Agent Configurator.
+
+{/* Hidden for now: - **Data plane moved with zero id changes**, no re-ingestion. */}
