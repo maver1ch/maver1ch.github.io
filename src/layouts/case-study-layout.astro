@@ -89,13 +89,16 @@ const seoDescription =
       <img class="lightbox-img" alt="" draggable="false" />
     </div>
     <button class="lightbox-close" aria-label="Close image">×</button>
+    <button type="button" class="lightbox-nav lightbox-prev" data-lightbox-prev aria-label="Previous image">‹</button>
+    <button type="button" class="lightbox-nav lightbox-next" data-lightbox-next aria-label="Next image">›</button>
     <div class="lightbox-toolbar">
+      <span class="lightbox-count" data-lightbox-count></span>
       <button type="button" data-zoom-out aria-label="Zoom out">−</button>
       <span class="lightbox-level" aria-live="polite">100%</span>
       <button type="button" data-zoom-in aria-label="Zoom in">+</button>
       <button type="button" data-zoom-fit class="lightbox-fit">Fit</button>
     </div>
-    <p class="lightbox-hint">Click to zoom in · scroll or pinch to zoom · drag to move</p>
+    <p class="lightbox-hint">Click to zoom in · scroll or pinch to zoom · drag to move · ← → next image</p>
   </div>
 
   <script>
@@ -359,6 +362,75 @@ const seoDescription =
     min-width: 3.5rem;
     text-align: center;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Image position in the page's gallery, split from the zoom controls by a thin rule */
+  .lightbox-count {
+    padding: 0 0.75rem 0 0.6rem;
+    margin-right: 0.25rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
+    font-variant-numeric: tabular-nums;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .lightbox-count:empty {
+    display: none;
+  }
+
+  /* Prev / next arrows on the screen edges, vertically centred */
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 2rem;
+    line-height: 1;
+    padding-bottom: 0.2rem;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+  }
+
+  .lightbox-nav:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .lightbox-nav:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  .lightbox-nav[hidden] {
+    display: none;
+  }
+
+  .lightbox-prev {
+    left: 1.5rem;
+  }
+
+  .lightbox-next {
+    right: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .lightbox-nav {
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 1.6rem;
+    }
+
+    .lightbox-prev {
+      left: 0.5rem;
+    }
+
+    .lightbox-next {
+      right: 0.5rem;
+    }
   }
 
   .lightbox-hint {

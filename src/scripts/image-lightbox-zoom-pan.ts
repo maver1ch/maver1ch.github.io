@@ -1,17 +1,22 @@
 // Click-to-zoom lightbox with wheel / pinch zoom and drag-to-pan.
 // Diagrams are tall 2x PNGs with small text: the viewer opens them fitted to the
 // screen, then lets the reader zoom into any part to read it at full resolution.
+// Every zoomable image on the page forms one gallery: arrows, keys or a swipe step through it.
 
 const ZOOM_STEP = 1.4;
 const DRAG_THRESHOLD = 4; // px a pointer must travel before a press counts as a drag
 const TOOLBAR_SPACE = 72; // px kept clear at the bottom so the zoom toolbar never covers a fitted image
+const SWIPE_DISTANCE = 50; // px of mostly-horizontal drag on a fitted image that turns the page
 
 export function initImageLightbox(): void {
   const lightbox = document.getElementById('image-lightbox');
   const stage = lightbox?.querySelector<HTMLElement>('.lightbox-stage');
   const img = lightbox?.querySelector<HTMLImageElement>('.lightbox-img');
   const level = lightbox?.querySelector<HTMLElement>('.lightbox-level');
-  if (!lightbox || !stage || !img || !level) return;
+  const count = lightbox?.querySelector<HTMLElement>('[data-lightbox-count]');
+  const prevBtn = lightbox?.querySelector<HTMLButtonElement>('[data-lightbox-prev]');
+  const nextBtn = lightbox?.querySelector<HTMLButtonElement>('[data-lightbox-next]');
+  if (!lightbox || !stage || !img || !level || !count || !prevBtn || !nextBtn) return;
 
   // Idempotent: Astro view transitions call this again on every page load
   if (lightbox.dataset.bound === '1') {
@@ -28,6 +33,8 @@ export function initImageLightbox(): void {
   let pressStart: { x: number; y: number } | null = null;
   let dragged = false;
   let pinchDistance = 0;
+  let gallery: HTMLImageElement[] = [];
+  let current = 0;
 
   const maxScale = () => Math.max(2, fitScale * 6);
 
@@ -49,8 +56,10 @@ export function initImageLightbox(): void {
 
   const fit = () => {
     const pad = window.innerWidth < 640 ? 16 : 48;
+    // On desktop, keep the side arrows clear of the fitted image
+    const padX = window.innerWidth >= 640 && gallery.length > 1 ? 96 : pad;
     fitScale = Math.min(
-      (stage.clientWidth - pad * 2) / img.naturalWidth,
+      (stage.clientWidth - padX * 2) / img.naturalWidth,
       (stage.clientHeight - TOOLBAR_SPACE - pad * 2) / img.naturalHeight,
     );
     scale = fitScale;
@@ -74,14 +83,32 @@ export function initImageLightbox(): void {
   };
   const centre = () => ({ x: stage.clientWidth / 2, y: stage.clientHeight / 2 });
 
-  const open = (src: string, alt: string) => {
-    img.alt = alt;
+  const show = (index: number) => {
+    current = Math.max(0, Math.min(gallery.length - 1, index));
+    const trigger = gallery[current];
+    img.alt = trigger.alt;
+    img.onload = fit;
+    img.src = trigger.currentSrc || trigger.src;
+    if (img.complete && img.naturalWidth) fit();
+
+    const many = gallery.length > 1;
+    prevBtn.hidden = nextBtn.hidden = !many;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === gallery.length - 1;
+    count.textContent = many ? `${current + 1} / ${gallery.length}` : '';
+  };
+
+  const step = (delta: number) => {
+    if (gallery.length > 1) show(current + delta);
+  };
+
+  const open = (trigger: HTMLImageElement) => {
+    // Re-read the page on every open so the gallery follows DOM order after view transitions
+    gallery = [...document.querySelectorAll<HTMLImageElement>('img[data-zoom]')];
     lightbox.classList.add('is-open');
     lightbox.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    img.onload = fit;
-    img.src = src;
-    if (img.complete && img.naturalWidth) fit();
+    show(Math.max(0, gallery.indexOf(trigger)));
   };
 
   const close = () => {
@@ -96,7 +123,7 @@ export function initImageLightbox(): void {
       if (trigger.dataset.zoomBound === '1') return;
       trigger.dataset.zoomBound = '1';
       trigger.style.cursor = 'zoom-in';
-      trigger.addEventListener('click', () => open(trigger.currentSrc || trigger.src, trigger.alt));
+      trigger.addEventListener('click', () => open(trigger));
     });
   }
   bindTriggers();
@@ -153,7 +180,16 @@ export function initImageLightbox(): void {
     if (pointers.size > 0) return;
     lightbox.classList.remove('is-dragging');
     pinchDistance = 0;
-    if (dragged) return;
+    if (dragged) {
+      // A mostly-horizontal drag on a fitted image is a swipe to the next or previous image
+      const p = stagePoint(e);
+      const dx = pressStart ? p.x - pressStart.x : 0;
+      const dy = pressStart ? p.y - pressStart.y : 0;
+      if (scale <= fitScale * 1.01 && Math.abs(dx) > SWIPE_DISTANCE && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        step(dx < 0 ? 1 : -1);
+      }
+      return;
+    }
 
     // A plain click: on the image it toggles fit <-> zoomed at that spot, outside it closes
     // Pointer capture retargets events to the stage, so hit-test the image box by hand
@@ -174,10 +210,14 @@ export function initImageLightbox(): void {
   lightbox.querySelector('[data-zoom-in]')?.addEventListener('click', () => zoomTo(scale * ZOOM_STEP, centre().x, centre().y));
   lightbox.querySelector('[data-zoom-out]')?.addEventListener('click', () => zoomTo(scale / ZOOM_STEP, centre().x, centre().y));
   lightbox.querySelector('[data-zoom-fit]')?.addEventListener('click', fit);
+  prevBtn.addEventListener('click', () => step(-1));
+  nextBtn.addEventListener('click', () => step(1));
 
   document.addEventListener('keydown', (e) => {
     if (!lightbox.classList.contains('is-open')) return;
     if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowLeft') step(-1);
+    else if (e.key === 'ArrowRight') step(1);
     else if (e.key === '+' || e.key === '=') zoomTo(scale * ZOOM_STEP, centre().x, centre().y);
     else if (e.key === '-') zoomTo(scale / ZOOM_STEP, centre().x, centre().y);
     else if (e.key === '0') fit();
